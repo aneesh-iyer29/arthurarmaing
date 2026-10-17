@@ -164,6 +164,7 @@ window.Flight3D = (() => {
 
   const tick = () => {
     if (!viewer) return;
+    if (mode === "explore") { walk(); return; }
     const tg = at(TECH_GREEN.lat, TECH_GREEN.lon, 0);
 
     if (mode === "idle") {
@@ -228,6 +229,139 @@ window.Flight3D = (() => {
 
   /* Over the shoulder, down at the Slate in his hand. */
   const lookAtSlate = () => moveCamera({ h: travelHeading + 0.5, pitch: -0.5, range: 2.1, lift: 1.35 }, 1400);
+
+  /* ---------------- Walking around campus ----------------
+     I walk where the stick (or WASD) points, relative to the camera, and
+     the camera drifts around behind me like the game's. On the photoreal
+     campus my feet follow whatever is under them, rooftops included. */
+  const WALK = 4.2, RUN = 9;   // meters per second
+  const ROAM = 2200;           // how far from Tech Green I'll wander
+  const M_PER_DEG = 111320;
+  const input = { x: 0, y: 0, run: false };
+  let walker = null;           // { lat, lon, alt, heading }
+  let walkerEntity = null, walkPos = null, walkOrient = null;
+  let camYaw = 0, camPitch = -0.28, camRange = 7, eyePitch = 0;
+  let firstPerson = false, lastFrame = 0, targetAlt = 0, walkPhase = 0, lastLook = 0;
+  let sampler = null;
+  let onMove = () => {}, onEdge = () => {};
+
+  const placeWalker = () => {
+    const bob = Math.abs(Math.sin(walkPhase)) * 0.09;
+    walkPos = C.Cartesian3.fromDegrees(walker.lon, walker.lat, walker.alt + bob);
+    walkOrient = facing(walkPos, walker.heading);
+  };
+
+  const walk = () => {
+    const now = performance.now();
+    const dt = lastFrame ? Math.min(0.05, (now - lastFrame) / 1000) : 0;
+    lastFrame = now;
+
+    const push = Math.min(1, Math.hypot(input.x, input.y));
+    let moving = false;
+    if (push > 0.08) {
+      moving = true;
+      const dir = camYaw + Math.atan2(input.x, input.y);
+      const step = (input.run ? RUN : WALK) * push * dt;
+      const cosLat = Math.cos(C.Math.toRadians(walker.lat));
+      const lat = walker.lat + (Math.cos(dir) * step) / M_PER_DEG;
+      const lon = walker.lon + (Math.sin(dir) * step) / (M_PER_DEG * cosLat);
+      const far = Math.hypot((lat - TECH_GREEN.lat) * M_PER_DEG, (lon - TECH_GREEN.lon) * M_PER_DEG * cosLat);
+      if (far < ROAM) { walker.lat = lat; walker.lon = lon; } else onEdge();
+      walker.heading = lerpAngle(walker.heading, dir, Math.min(1, dt * 12));
+      walkPhase += dt * (input.run ? 11 : 7.5) * push;
+      // The camera swings around behind me unless someone is steering it.
+      if (!firstPerson && now - lastLook > 1200) camYaw = lerpAngle(camYaw, walker.heading, Math.min(1, dt * 0.9 * push));
+    } else {
+      walkPhase = 0;
+    }
+    // Up onto things quickly, down off them a little slower.
+    walker.alt += (targetAlt - walker.alt) * Math.min(1, dt * (targetAlt > walker.alt ? 9 : 5));
+    placeWalker();
+
+    if (firstPerson) {
+      scene.camera.lookAtTransform(C.Matrix4.IDENTITY);
+      scene.camera.setView({
+        destination: lift(walkPos, 1.62),
+        orientation: { heading: camYaw, pitch: eyePitch, roll: 0 },
+      });
+    } else {
+      look(lift(walkPos, 1.5), camYaw, camPitch, camRange);
+    }
+    onMove(walker.lat, walker.lon, walker.heading, moving);
+  };
+
+  /* What's under my feet, a few times a second. */
+  const sampleFeet = () => {
+    if (mode !== "explore" || !walker) return;
+    if (!photoreal) { targetAlt = ground; return; }
+    try {
+      const h = scene.sampleHeight(C.Cartographic.fromDegrees(walker.lon, walker.lat), walkerEntity ? [walkerEntity] : []);
+      if (Number.isFinite(h)) targetAlt = h;
+    } catch { /* keep the last height */ }
+  };
+
+  const explore = (moved, edge) => {
+    if (!viewer) return;
+    onMove = moved || onMove;
+    onEdge = edge || onEdge;
+    viewer.clock.shouldAnimate = false;
+    shot = null;
+    if (glider) { viewer.entities.remove(glider); glider = null; }
+    if (stander) { viewer.entities.remove(stander); stander = null; }
+    if (!walker) {
+      walker = { lat: TECH_GREEN.lat, lon: TECH_GREEN.lon, alt: ground, heading: travelHeading };
+      camYaw = travelHeading;
+      targetAlt = ground;
+    }
+    placeWalker();
+    if (!walkerEntity) {
+      const Pos = C.CallbackPositionProperty || C.CallbackProperty;
+      walkerEntity = viewer.entities.add({
+        position: new Pos(() => walkPos, false),
+        orientation: new C.CallbackProperty(() => walkOrient, false),
+        model: { uri: "models/arthur-stand.glb", scale: 1 },
+      });
+    }
+    walkerEntity.show = !firstPerson;
+    lastFrame = 0;
+    mode = "explore";
+    clearInterval(sampler);
+    sampler = setInterval(sampleFeet, 90);
+  };
+
+  /* Stop walking but stay where I am (the Slate opens over the top). */
+  const pauseExplore = () => {
+    input.x = input.y = 0;
+    clearInterval(sampler);
+  };
+
+  const endExplore = () => {
+    pauseExplore();
+    if (walkerEntity) { viewer.entities.remove(walkerEntity); walkerEntity = null; }
+    walker = null;
+    firstPerson = false;
+    if (scene) scene.camera.lookAtTransform(C.Matrix4.IDENTITY);
+  };
+
+  const setMove = (x, y, run) => { input.x = x; input.y = y; input.run = !!run; };
+
+  /* Drag to look around: dx turns, dy tilts. */
+  const turn = (dx, dy = 0) => {
+    lastLook = performance.now();
+    camYaw += dx;
+    if (firstPerson) eyePitch = Math.max(-1.3, Math.min(1.1, eyePitch - dy));
+    else camPitch = Math.max(-1.35, Math.min(0.05, camPitch - dy));
+  };
+
+  const zoom = (f) => { camRange = Math.max(3, Math.min(60, camRange * f)); };
+
+  const toggleView = () => {
+    firstPerson = !firstPerson;
+    eyePitch = 0;
+    if (walkerEntity) walkerEntity.show = !firstPerson;
+    if (!firstPerson && scene) scene.camera.lookAtTransform(C.Matrix4.IDENTITY);
+    return firstPerson;
+  };
 
   const init = async (container) => {
     if (!hasWebGL()) return false;
@@ -351,7 +485,7 @@ window.Flight3D = (() => {
 
   /* Jump straight to the landed state (used by Skip). */
   const skipToLanding = () => {
-    if (!viewer) return;
+    if (!viewer || mode === "explore") return;
     if (mode === "fly") viewer.clock.currentTime = t1.clone();
     else if (mode === "idle") {
       travelHeading = headingBetween(at(PATH[5][0], PATH[5][1], 0), at(TECH_GREEN.lat, TECH_GREEN.lon, 0));
@@ -365,6 +499,7 @@ window.Flight3D = (() => {
   /* Back to the slow orbit over campus, ready for another run. */
   const idle = () => {
     if (!viewer) return;
+    endExplore();
     if (stander) { viewer.entities.remove(stander); stander = null; }
     if (glider) { viewer.entities.remove(glider); glider = null; }
     viewer.clock.shouldAnimate = false;
@@ -381,6 +516,8 @@ window.Flight3D = (() => {
 
   return {
     init, start, lookAtSlate, skipToLanding, idle,
+    explore, pauseExplore, setMove, turn, zoom, toggleView,
+    get exploring() { return mode === "explore"; },
     get ready() { return !!viewer; },
     get photoreal() { return photoreal; },
     status,

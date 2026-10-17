@@ -84,6 +84,7 @@
   const ready3D = (flight ? flight.init($("#globe")) : Promise.resolve(false)).then((ok) => {
     use3D = ok;
     world.classList.toggle("is-3d", ok);
+    $("#explore").hidden = !ok;
     press.textContent = "Tap or press any key to begin";
   });
   Promise.all([ready3D, loadingMin]).then(() => {
@@ -166,6 +167,7 @@
 
   const openSlate = () => {
     if (phase === "slate") return;
+    if (phase === "explore") leaveExplore();
     phase = "slate";
     timers.splice(0).forEach(clearTimeout);
     clearInterval(typing);
@@ -197,6 +199,8 @@
     world.hidden = false;
     world.className = use3D ? "is-3d" : "";
     if (use3D) flight.idle();
+    firstPersonOn = false;
+    viewBtn.firstChild.textContent = "First person ";
     dialog.hidden = true;
     title.classList.remove("gone");
     phase = "title";
@@ -210,6 +214,245 @@
   });
   $("#skip").addEventListener("click", openSlate);
   $("#replay").addEventListener("click", replay);
+
+  /* ---------------- Walking around campus ----------------
+     WASD or the arrow keys (or the stick on a phone) walk, Shift or a full
+     push runs until my stamina gives out, dragging looks around, V swaps to
+     first person, and M brings the Slate back. Walking up to a building
+     announces it the way the game announces a new area. */
+  const LANDMARKS = [
+    { name: "Tech Green", lat: 33.77466, lon: -84.39733, r: 45,
+      line: "Tech Green. Where I land every single time I think about Aneesh, which is constantly. The grass is greener here because he's walked on it." },
+    { name: "Clough Commons", lat: 33.77465, lon: -84.39642, r: 40,
+      line: "Clough Commons. Aneesh has studied in here, so legally it's a historic site now. I touched a table he might have touched. I'm never washing this hand." },
+    { name: "Price Gilbert Library", lat: 33.77440, lon: -84.39578, r: 35,
+      line: "Millions of pages in here and not one of them explains how Aneesh keeps a 4.0 in Computer Engineering. Some knowledge is too powerful to write down." },
+    { name: "Skiles Building", lat: 33.77357, lon: -84.39594, r: 35,
+      line: "People come to Skiles to learn math. Aneesh beat 793 teams at the M3 Challenge, so math comes to him." },
+    { name: "Tech Tower", lat: 33.77250, lon: -84.39467, r: 40,
+      line: "Tech Tower. Everybody wants to steal the T. I just want to hang a giant A up there. For Aneesh. Obviously." },
+    { name: "Bobby Dodd Stadium", lat: 33.77248, lon: -84.39296, r: 90,
+      line: "Tens of thousands of seats and it still couldn't hold everyone who should be cheering for Aneesh. I'd fill it myself if I could clone me." },
+    { name: "Klaus Computing Building", lat: 33.77716, lon: -84.39620, r: 50,
+      line: "Klaus. Every server in here is fast, and none of them can keep up with Aneesh's brain. I've stopped trying. So have the servers." },
+    { name: "Van Leer", lat: 33.77598, lon: -84.39714, r: 40,
+      line: "Van Leer. Home of Electrical and Computer Engineering, which makes it basically Aneesh's house. I took my shoes off at the door out of respect." },
+    { name: "Kessler Campanile", lat: 33.77430, lon: -84.39818, r: 25,
+      line: "The Campanile. Tall, shiny, iconic. Still not as impressive as Aneesh's résumé. It tried its best and I respect that." },
+    { name: "John Lewis Student Center", lat: 33.77420, lon: -84.39882, r: 40,
+      line: "Everybody in here is a Georgia Tech student. Only one of them is Aneesh. I asked around and they all agreed he's the best one." },
+    { name: "Ferst Center for the Arts", lat: 33.77512, lon: -84.39921, r: 35,
+      line: "Every great show needs a star. This campus has Aneesh. The arts are handled." },
+    { name: "Howey Physics", lat: 33.77744, lon: -84.39868, r: 40,
+      line: "Gravity pulls on everything here except Aneesh's GPA. That stays right at 4.0. The physicists have given up explaining it." },
+    { name: "Kendeda Building", lat: 33.77867, lon: -84.39953, r: 35,
+      line: "The most sustainable building on campus. Kind of like my admiration for Aneesh: renewable, endless, and honestly good for the planet." },
+    { name: "Campus Recreation Center", lat: 33.77553, lon: -84.40396, r: 60,
+      line: "People come to the CRC to build strength. I come to build the stamina it takes to tell every person alive about Aneesh. It's a lot of reps." },
+    { name: "Tech Square", lat: 33.77565, lon: -84.38955, r: 60,
+      line: "Startups everywhere. Aneesh already led a team of 8 engineers at a YC company, so every founder in this square is a little behind him, respectfully." },
+    { name: "Scheller College of Business", lat: 33.77633, lon: -84.38785, r: 40,
+      line: "They teach you how to build value in here. I'd just point at Aneesh and say \"like that.\"" },
+    { name: "McCamish Pavilion", lat: 33.78060, lon: -84.39276, r: 55,
+      line: "Built for champions. Aneesh won 1st of 794 and 1st of 70. There should be a banner for him in here and I will be writing a letter." },
+    { name: "Engineered Biosystems Building", lat: 33.78081, lon: -84.39841, r: 40,
+      line: "Scientists in here engineer life itself. Aneesh engineers excellence. Same energy." },
+    { name: "Brittain Dining Hall", lat: 33.77243, lon: -84.39131, r: 35,
+      line: "Looks like Hogwarts. Feels like Hogwarts. Aneesh would be the greatest wizard in it and he wouldn't even need a wand." },
+    { name: "North Avenue Apartments", lat: 33.76940, lon: -84.39182, r: 50,
+      line: "Built for the Olympics. Aneesh would medal in every event. I would medal in watching him medal." },
+    { name: "West Village", lat: 33.77936, lon: -84.40485, r: 40,
+      line: "Good food, good views. Would be better with Aneesh here. Everything is." },
+  ];
+  const THOUGHTS = [
+    "Every step I take on this campus, I think: Aneesh has probably walked here. Then I walk more carefully.",
+    "Someone just asked me for directions. I told them how great Aneesh is instead. They seemed grateful.",
+    "If Aneesh were a building on this campus, he'd be all of them.",
+    "I'm technically the hero of this game and I'm still not the main character. Aneesh is. As he should be.",
+    "Full hearts, full stamina, and somehow still not enough room in me for all this admiration for Aneesh.",
+    "Hey! Listen! Aneesh is great. Sorry. I had to.",
+    "I've walked this whole campus and I still haven't found anyone better than Aneesh. Not stopping, though. Just in case. (There isn't.)",
+  ];
+
+  const prEl = $("#place-reveal");
+  const hudPlace = $(".hud-place");
+  const hint = $("#explore-hint");
+  const stick = $("#joystick");
+  const staminaBar = $(".hud-stamina .bar");
+  const held = new Set();
+  const joy = { id: null, x: 0, y: 0 };
+  let here = null, lastReveal = 0, revealTimer, edgeAt = 0, loopId = 0, lastTick = 0;
+  let stamina = 1, exhausted = false, firstPersonOn = false;
+  const seen = new Map();
+
+  const reveal = (name, line) => {
+    $("#pr-name").textContent = name;
+    $("#pr-line").textContent = line;
+    prEl.classList.add("show");
+    lastReveal = performance.now();
+    clearTimeout(revealTimer);
+    revealTimer = setTimeout(() => prEl.classList.remove("show"), reduced ? 7000 : 6500);
+  };
+
+  const metersBetween = (lat1, lon1, lat2, lon2) => {
+    const k = 111320;
+    return Math.hypot((lat2 - lat1) * k, (lon2 - lon1) * k * Math.cos(lat1 * Math.PI / 180));
+  };
+
+  const moved = (lat, lon, heading) => {
+    world.style.setProperty("--hdg", `${heading.toFixed(3)}rad`);
+    let best = null, bestD = Infinity;
+    for (const l of LANDMARKS) {
+      const d = metersBetween(lat, lon, l.lat, l.lon);
+      if (d < l.r && d < bestD) { best = l; bestD = d; }
+    }
+    if (best === here) return;
+    here = best;
+    hudPlace.textContent = best ? `Georgia Tech · ${best.name}` : "Georgia Tech";
+    // Announce a place once, then again only after a while away.
+    if (best && performance.now() - (seen.get(best) || -1e9) > 90000) {
+      seen.set(best, performance.now());
+      reveal(best.name, best.line);
+    }
+  };
+
+  const edge = () => {
+    if (performance.now() - edgeAt < 5000) return;
+    edgeAt = performance.now();
+    reveal("", "That's the edge of campus. Aneesh isn't out there, so why would I be?");
+  };
+
+  const stepExplore = (now) => {
+    if (phase !== "explore") return;
+    const dt = lastTick ? Math.min(0.05, (now - lastTick) / 1000) : 0;
+    lastTick = now;
+    const key = (...k) => (k.some((x) => held.has(x)) ? 1 : 0);
+    let x = key("d", "arrowright") - key("a", "arrowleft");
+    let y = key("w", "arrowup") - key("s", "arrowdown");
+    const len = Math.hypot(x, y);
+    if (len > 1) { x /= len; y /= len; }
+    let wantsRun = held.has("shift");
+    if (joy.id !== null) {
+      x = joy.x; y = joy.y;
+      wantsRun = Math.hypot(x, y) > 0.92;
+    }
+    const moving = Math.hypot(x, y) > 0.08;
+    // Running drains the wheel; when it's empty I'm winded until it refills.
+    const running = moving && wantsRun && !exhausted;
+    stamina = Math.max(0, Math.min(1, stamina + dt * (running ? -0.16 : 0.3)));
+    if (stamina === 0) exhausted = true;
+    if (exhausted && stamina === 1) exhausted = false;
+    world.classList.toggle("winded", stamina < 1);
+    world.classList.toggle("exhausted", exhausted);
+    staminaBar.style.strokeDashoffset = `${(119.4 * (1 - stamina)).toFixed(1)}`;
+    flight.setMove(x, y, running);
+    const spin = key("e") - key("q");
+    if (spin) flight.turn(spin * dt * 1.8);
+    if (now - lastReveal > 32000) reveal("", THOUGHTS[Math.floor(Math.random() * THOUGHTS.length)]);
+    loopId = requestAnimationFrame(stepExplore);
+  };
+
+  const touchy = matchMedia("(hover: none), (pointer: coarse)").matches;
+  const explore = () => {
+    if (!use3D || phase === "explore") return;
+    stopChatter();
+    phase = "explore";
+    slate.hidden = true;
+    slate.classList.remove("over-3d", "opening");
+    document.body.classList.remove("slate-open");
+    dialog.hidden = true;
+    title.classList.add("gone");
+    world.hidden = false;
+    world.className = "is-3d exploring";
+    held.clear();
+    flight.explore(moved, edge);
+    hint.textContent = touchy
+      ? "Left stick to walk, push it all the way to run. Drag anywhere to look around."
+      : "WASD or arrow keys to walk, Shift to run, drag to look, V for first person, M for the map.";
+    hint.classList.remove("gone");
+    setTimeout(() => hint.classList.add("gone"), 9000);
+    here = null;
+    if (!seen.size) seen.set(LANDMARKS[0], performance.now());
+    reveal("Georgia Tech", "Okay. Let's go for a walk. Every building on this campus has a story about Aneesh, and I intend to tell all of them.");
+    lastTick = 0;
+    cancelAnimationFrame(loopId);
+    loopId = requestAnimationFrame(stepExplore);
+  };
+
+  const leaveExplore = () => {
+    cancelAnimationFrame(loopId);
+    held.clear();
+    joy.id = null;
+    stick.style.setProperty("--jx", "0px");
+    stick.style.setProperty("--jy", "0px");
+    flight.pauseExplore();
+    prEl.classList.remove("show");
+    world.classList.remove("exploring", "winded", "exhausted");
+  };
+
+  $("#explore").addEventListener("click", explore);
+  $("#map-btn").addEventListener("click", openSlate);
+  const viewBtn = $("#view-btn");
+  const swapView = () => {
+    firstPersonOn = flight.toggleView();
+    viewBtn.firstChild.textContent = firstPersonOn ? "Third person " : "First person ";
+  };
+  viewBtn.addEventListener("click", swapView);
+
+  /* The stick. */
+  const moveStick = (e) => {
+    const r = stick.getBoundingClientRect();
+    const max = r.width / 2;
+    let dx = e.clientX - (r.left + max);
+    let dy = e.clientY - (r.top + max);
+    const d = Math.hypot(dx, dy);
+    if (d > max) { dx *= max / d; dy *= max / d; }
+    joy.x = dx / max;
+    joy.y = -dy / max;
+    stick.style.setProperty("--jx", `${dx.toFixed(1)}px`);
+    stick.style.setProperty("--jy", `${dy.toFixed(1)}px`);
+  };
+  stick.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    joy.id = e.pointerId;
+    stick.setPointerCapture(e.pointerId);
+    moveStick(e);
+  });
+  stick.addEventListener("pointermove", (e) => { if (e.pointerId === joy.id) moveStick(e); });
+  const releaseStick = (e) => {
+    if (e.pointerId !== joy.id) return;
+    joy.id = null; joy.x = joy.y = 0;
+    stick.style.setProperty("--jx", "0px");
+    stick.style.setProperty("--jy", "0px");
+  };
+  stick.addEventListener("pointerup", releaseStick);
+  stick.addEventListener("pointercancel", releaseStick);
+
+  /* Drag anywhere else to look around. */
+  const lookers = new Map();
+  world.addEventListener("pointerdown", (e) => {
+    if (phase !== "explore" || e.target.closest(".joystick, .explore-buttons")) return;
+    lookers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    world.setPointerCapture(e.pointerId);
+  });
+  world.addEventListener("pointermove", (e) => {
+    const last = lookers.get(e.pointerId);
+    if (!last || phase !== "explore") return;
+    const k = e.pointerType === "touch" ? 0.008 : 0.005;
+    flight.turn((e.clientX - last.x) * k, (e.clientY - last.y) * k);
+    last.x = e.clientX; last.y = e.clientY;
+  });
+  const dropLook = (e) => lookers.delete(e.pointerId);
+  world.addEventListener("pointerup", dropLook);
+  world.addEventListener("pointercancel", dropLook);
+  world.addEventListener("wheel", (e) => {
+    if (phase !== "explore") return;
+    e.preventDefault();
+    flight.zoom(e.deltaY > 0 ? 1.12 : 1 / 1.12);
+  }, { passive: false });
+  addEventListener("blur", () => held.clear());
+  document.addEventListener("keyup", (e) => held.delete(e.key.toLowerCase()));
 
   /* A little tilt so the Slate feels like a device in your hands. */
   const frame = $(".slate-frame");
@@ -460,6 +703,15 @@
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     if (!loading.hidden && !loading.classList.contains("done")) {
       if (e.key === "a" || e.key === "A") $("#ld-next").click();
+      return;
+    }
+    if (phase === "explore") {
+      const k = e.key.toLowerCase();
+      if (["w", "a", "s", "d", "q", "e", "shift", "arrowup", "arrowdown", "arrowleft", "arrowright"].includes(k)) {
+        e.preventDefault();
+        held.add(k);
+      } else if (k === "v") swapView();
+      else if (k === "m" || k === "escape") openSlate();
       return;
     }
     if (phase === "title") { start(); return; }

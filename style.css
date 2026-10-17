@@ -313,6 +313,82 @@ img { display: block; max-width: 100%; }
 }
 @media (max-width: 600px) { #world.landed .hud-minimap, #world.landed .hud-place { display: none; } }
 
+/* Walking around campus */
+#world.exploring { cursor: grab; touch-action: none; }
+#world.exploring:active { cursor: grabbing; }
+#world.exploring .hud { display: block; }
+#world.exploring .hud-map { animation: none; transform: scale(1.1); }
+#world.exploring .hud-arrow { transform: translate(-50%, -60%) rotate(var(--hdg, 0rad)); transform-origin: 50% 60%; }
+#world.exploring .hud-stamina { left: calc(50% + 70px); top: 46%; opacity: 0; }
+#world.exploring.winded .hud-stamina { opacity: 1; }
+#world.exploring .hud-stamina .bar { transition: none; }
+#world.exploring.exhausted .hud-stamina .bar { stroke: #e5353b; }
+#world.exploring .skip { display: none; }
+.explore-ui { display: none; }
+#world.exploring .explore-ui { display: block; }
+.joystick {
+  display: none; position: absolute; z-index: 4;
+  left: max(24px, env(safe-area-inset-left)); bottom: max(28px, env(safe-area-inset-bottom));
+  width: 132px; height: 132px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, .08), rgba(255, 255, 255, .18));
+  border: 2px solid rgba(255, 255, 255, .45);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, .35);
+  touch-action: none;
+}
+.joystick .knob {
+  position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; margin: -29px 0 0 -29px;
+  border-radius: 50%; background: rgba(255, 255, 255, .85); border: 3px solid var(--cyan);
+  box-shadow: 0 0 14px rgba(79, 227, 255, .6);
+  transform: translate(var(--jx, 0px), var(--jy, 0px));
+}
+@media (hover: none), (pointer: coarse) { .joystick { display: block; } }
+.explore-buttons {
+  position: absolute; z-index: 4; top: max(14px, env(safe-area-inset-top)); right: 16px;
+  display: flex; gap: 8px;
+}
+.explore-buttons button {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(0, 0, 0, .45); border: 1px solid rgba(255, 255, 255, .3); color: #fff;
+  border-radius: 999px; padding: 6px 12px; font: 600 13px var(--body); cursor: pointer;
+}
+.explore-buttons button:hover { background: rgba(0, 0, 0, .65); }
+.explore-buttons kbd { width: 20px; height: 20px; margin: 0; background: rgba(255, 255, 255, .2); }
+@media (hover: none), (pointer: coarse) { .explore-buttons kbd { display: none; } }
+.explore-hint {
+  position: absolute; z-index: 4; left: 50%; bottom: max(26px, env(safe-area-inset-bottom)); transform: translateX(-50%);
+  width: max-content; max-width: min(560px, calc(100% - 330px));
+  margin: 0; padding: 8px 16px; border-radius: 999px; background: var(--box);
+  font-size: 13px; text-align: center; color: #fff; pointer-events: none;
+  transition: opacity .8s;
+}
+.explore-hint.gone { opacity: 0; }
+@media (max-width: 700px) {
+  .explore-hint { left: auto; right: 14px; bottom: 132px; transform: none; max-width: calc(100% - 180px); border-radius: 14px; }
+}
+
+/* Location reveal, like walking into a new area in the game */
+.place-reveal {
+  position: absolute; z-index: 4; left: 50%; top: max(70px, 13vh); transform: translateX(-50%);
+  width: min(560px, calc(100% - 32px)); text-align: center;
+  opacity: 0; transition: opacity .9s; pointer-events: none;
+}
+.place-reveal.show { opacity: 1; }
+.pr-name {
+  margin: 0; font-family: var(--title); font-size: clamp(26px, 5vw, 42px); color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, .7), 0 0 24px rgba(0, 0, 0, .5);
+}
+.pr-name:empty, .pr-name:empty + .pr-rule { display: none; }
+.pr-rule {
+  display: block; width: 70%; height: 2px; margin: 8px auto 12px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .9), transparent);
+}
+.pr-line {
+  display: inline-block; margin: 0; padding: 10px 16px; border-radius: 14px;
+  background: var(--box); font-size: clamp(14px, 2vw, 16px); line-height: 1.45; color: var(--ink);
+}
+.pr-line::before { content: "Arthur: "; color: var(--gold); font-weight: 800; }
+.pr-line:empty { display: none; }
+
 /* Title card */
 .title-card {
   position: absolute; inset: 0;
@@ -639,6 +715,13 @@ kbd {
 .linkish:hover { text-decoration: underline; }
 .glaze-count { color: var(--gold); font-weight: 700; }
 .replay { margin-left: auto; }
+.explore-go {
+  padding: 7px 14px; border-radius: 999px; border: 0; cursor: pointer;
+  background: var(--cyan); color: #10161a; font: 800 13px var(--body);
+  box-shadow: 0 0 14px rgba(79, 227, 255, .45);
+}
+.explore-go:hover { filter: brightness(1.1); }
+.explore-go[hidden] { display: none; }
 
 .fine { max-width: 1180px; margin: 14px auto 4px; text-align: center; font-size: 12px; color: #6f7377; line-height: 1.5; }
 .fine a { color: var(--muted); }

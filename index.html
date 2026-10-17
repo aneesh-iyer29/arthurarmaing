@@ -157,6 +157,21 @@
     </div>
 
     <button id="skip" class="skip" type="button">Skip &#9654;&#9654;</button>
+
+    <!-- Walking around campus -->
+    <div class="place-reveal" id="place-reveal" aria-live="polite">
+      <p class="pr-name" id="pr-name"></p>
+      <span class="pr-rule" aria-hidden="true"></span>
+      <p class="pr-line" id="pr-line"></p>
+    </div>
+    <div class="explore-ui">
+      <div class="joystick" id="joystick" aria-hidden="true"><span class="knob"></span></div>
+      <div class="explore-buttons">
+        <button type="button" id="view-btn">First person <kbd>V</kbd></button>
+        <button type="button" id="map-btn">Map <kbd>M</kbd></button>
+      </div>
+      <p class="explore-hint" id="explore-hint"></p>
+    </div>
   </main>
 
   <!-- ============ The Sheikah Slate ============ -->
@@ -176,6 +191,7 @@
           <button role="tab" class="tab" data-tab="album" aria-selected="false">Album</button>
         </nav>
         <p class="region">Region: <strong>Aneesh</strong> (all of it)</p>
+        <button type="button" id="explore" class="explore-go" hidden>Walk around campus &#9654;</button>
       </header>
 
       <!-- Map -->
