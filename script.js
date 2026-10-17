@@ -48,6 +48,19 @@
     "I rest at campfires to pass the time. I use the time to think about Aneesh.",
     "Walk up to any building on campus and I'll tell you something great about Aneesh. I have one for every building. I made sure.",
     "Aneesh bought me this domain. Then he bought me two more. I've been emotional about it ever since.",
+    "If you see a Guardian, don't panic. Just tell it about Aneesh. It'll lower its laser out of respect.",
+    "Koroks hide under rocks. Aneesh's flaws hide nowhere, because there aren't any.",
+    "Warping is free. Admiring Aneesh is also free. I recommend doing both, constantly.",
+    "Swords break. Shields break. My loyalty to Aneesh does not break. I've hit it with a Lynel club to check.",
+    "It's dangerous to go alone. Take Aneesh. He'll carry the whole team anyway.",
+    "A Blood Moon rises. Every monster respawns. Aneesh's GPA stays at 4.0.",
+    "Climbing in the rain is impossible. Climbing to Aneesh's level is also impossible. Try anyway.",
+    "Loading is a great time to text Aneesh and tell him he's doing amazing. I'll wait.",
+    "Hestu will trade inventory slots for Korok seeds. I'd trade every slot for five minutes of Aneesh's productivity.",
+    "Every shrine in Greater Aneesh ends with a Spirit Orb. Every conversation with Aneesh ends with me feeling smarter.",
+    "Pro tip: you can't cook a dish better than Aneesh. I tried. The pot exploded.",
+    "If this loading screen feels long, imagine how long it took the other 793 M3 teams to accept they lost.",
+    "Monks have waited 10,000 years in their shrines. I'd wait 10,000 more for one Aneesh compliment.",
   ];
   const loading = $("#loading");
   const tipEl = $("#ld-tip");
@@ -87,6 +100,7 @@
     use3D = ok;
     world.classList.toggle("is-3d", ok);
     $("#explore").hidden = !ok;
+    if (ok) flight.placeShrines(POIS.map((p) => Object.assign(p.campus, { label: p.shrine, done: orbs.has(p.name) })));
     press.textContent = "Tap or press any key to begin";
   });
   Promise.all([ready3D, loadingMin]).then(() => {
@@ -283,6 +297,8 @@
   const staminaBar = $(".hud-stamina .bar");
   const held = new Set();
   const joy = { id: null, x: 0, y: 0 };
+  const shrinePrompt = $("#shrine-prompt");
+  let nearShrine = null;
   let here = null, lastReveal = 0, revealTimer, edgeAt = 0, loopId = 0, lastTick = 0;
   let stamina = 1, exhausted = false, firstPersonOn = false;
   const seen = new Map();
@@ -303,6 +319,14 @@
 
   const moved = (lat, lon, heading) => {
     world.style.setProperty("--hdg", `${heading.toFixed(3)}rad`);
+    // Close enough to a shrine's door to go in?
+    let door = null;
+    for (const p of POIS) if (metersBetween(lat, lon, p.campus.lat, p.campus.lon) < 14) door = p;
+    if (door !== nearShrine) {
+      nearShrine = door;
+      shrinePrompt.hidden = !door;
+      if (door) $("#shrine-prompt-text").textContent = `Enter ${door.shrine}`;
+    }
     let best = null, bestD = Infinity;
     for (const l of LANDMARKS) {
       const d = metersBetween(lat, lon, l.lat, l.lon);
@@ -355,7 +379,7 @@
   };
 
   const touchy = matchMedia("(hover: none), (pointer: coarse)").matches;
-  const explore = () => {
+  const explore = ({ intro = true } = {}) => {
     if (!use3D || phase === "explore") return;
     stopChatter();
     phase = "explore";
@@ -368,14 +392,19 @@
     world.className = "is-3d exploring";
     held.clear();
     flight.explore(moved, edge);
-    hint.textContent = touchy
-      ? "Left stick to walk, push it all the way to run. Drag anywhere to look around."
-      : "WASD or arrow keys to walk, Shift to run, drag to look, V for first person, M for the map.";
-    hint.classList.remove("gone");
-    setTimeout(() => hint.classList.add("gone"), 9000);
     here = null;
-    if (!seen.size) seen.set(LANDMARKS[0], performance.now());
-    reveal("Georgia Tech", "Okay. Let's go for a walk. Every building on this campus has a story about Aneesh, and I intend to tell all of them.");
+    nearShrine = null;
+    hudPlace.textContent = "Georgia Tech";
+    if (!intro) hint.classList.add("gone");
+    if (intro) {
+      hint.textContent = touchy
+        ? "Left stick to walk, push it all the way to run. Drag anywhere to look around."
+        : "WASD or arrow keys to walk, Shift to run, drag to look, V for first person, M for the map.";
+      hint.classList.remove("gone");
+      setTimeout(() => hint.classList.add("gone"), 9000);
+      if (!seen.size) seen.set(LANDMARKS[0], performance.now());
+      reveal("Georgia Tech", "Okay. Let's go for a walk. Every building on this campus has a story about Aneesh, and I intend to tell all of them. Follow the blue beams to find the shrines.");
+    }
     lastTick = 0;
     cancelAnimationFrame(loopId);
     loopId = requestAnimationFrame(stepExplore);
@@ -389,6 +418,8 @@
     stick.style.setProperty("--jy", "0px");
     flight.pauseExplore();
     prEl.classList.remove("show");
+    shrinePrompt.hidden = true;
+    nearShrine = null;
     world.classList.remove("exploring", "winded", "exhausted");
   };
 
@@ -434,7 +465,7 @@
   /* Drag anywhere else to look around. */
   const lookers = new Map();
   world.addEventListener("pointerdown", (e) => {
-    if (phase !== "explore" || e.target.closest(".joystick, .explore-buttons")) return;
+    if (phase !== "explore" || e.target.closest(".joystick, button")) return;
     lookers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     world.setPointerCapture(e.pointerId);
   });
@@ -456,6 +487,185 @@
   addEventListener("blur", () => held.clear());
   document.addEventListener("keyup", (e) => held.delete(e.key.toLowerCase()));
 
+  /* ---------------- Warping and shrines ----------------
+     Pick a shrine on the Slate and I dissolve into blue light, the loading
+     screen shows a tip about where I'm headed, and I re-form next to the
+     shrine on campus. Walking up to its door and going in starts the trial. */
+  const shrineEl = $("#shrine");
+  const ldTitle = $("#ld-title");
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const heroSpot = () => ({ x: innerWidth / 2, y: innerHeight * 0.56 });
+  const pinSpot = (p) => {
+    const r = p.el.getBoundingClientRect();
+    return r.width ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : heroSpot();
+  };
+  let busy = false, inShrine = null, trialStop = () => {}, talk = [], talkAt = 0;
+
+  // The loading screen again, briefly, with a tip about where I'm headed.
+  const warpLoading = async (p) => {
+    ldTitle.textContent = p.name;
+    tipEl.classList.remove("swap");
+    tipEl.textContent = p.warpTip;
+    fill.style.transition = "none";
+    fill.style.width = "0%";
+    loading.classList.add("quick");
+    loading.classList.remove("done");
+    loading.hidden = false;
+    WarpFX.clear();
+    void fill.offsetWidth;
+    fill.style.transition = "width 2.4s ease";
+    fill.style.width = "100%";
+    await wait(reduced ? 1200 : 2900);
+    WarpFX.cover(true);
+    loading.hidden = true;
+    loading.classList.remove("quick");
+    fill.style.transition = "";
+  };
+
+  const warpTo = async (p) => {
+    if (busy) return;
+    busy = true;
+    if (phase === "explore") leaveExplore();
+    phase = "warping";
+    stopChatter();
+    let origin = pinSpot(p);
+    if (use3D) {
+      // Close the Slate first, so I can be seen turning into light.
+      slate.hidden = true;
+      slate.classList.remove("over-3d", "opening");
+      document.body.classList.remove("slate-open");
+      world.hidden = false;
+      title.classList.add("gone");
+      dialog.hidden = true;
+      origin = heroSpot();
+      setTimeout(() => flight.showHero(false), reduced ? 0 : 600);
+    }
+    await WarpFX.out({ origin, dark: true });
+    slate.hidden = true;
+    document.body.classList.remove("slate-open");
+    await warpLoading(p);
+    if (use3D) {
+      flight.warpTo(p.campus);
+      explore({ intro: false });
+      flight.showHero(false);
+      setTimeout(() => flight.showHero(true), reduced ? 0 : 650);
+      await WarpFX.in({ origin: heroSpot(), dark: true });
+      reveal(p.shrine, `There it is, right by ${p.campus.near}. ${p.teaser} Let's go in.`);
+      busy = false;
+    } else {
+      busy = false;
+      await enterShrine(p, { fromWarp: true });
+    }
+  };
+
+  const enterShrine = async (p, { fromWarp = false } = {}) => {
+    if (busy && !fromWarp) return;
+    busy = true;
+    if (!fromWarp) {
+      if (phase === "explore") leaveExplore();
+      phase = "warping";
+      await WarpFX.out({ origin: heroSpot(), ms: 900 });
+    }
+    inShrine = p;
+    phase = "shrine";
+    $("#sc-name").textContent = p.shrine;
+    $("#sc-trial").textContent = p.trial;
+    $("#sh-name").textContent = p.shrine;
+    $("#sh-trial").textContent = p.trial;
+    $("#shrine-how").textContent = p.how;
+    const stage = $("#shrine-stage");
+    stage.innerHTML = "";
+    $("#shrine-end").hidden = true;
+    $("#shrine-exit").hidden = true;
+    shrineEl.className = "shrine intro";
+    shrineEl.hidden = false;
+    document.body.classList.add("in-shrine");
+    await WarpFX.in({ dark: fromWarp, ms: 1100 });
+    busy = false;
+    // The shrine's name hangs in the air for a moment, like the game's.
+    await wait(reduced ? 500 : 2300);
+    if (inShrine !== p || phase !== "shrine") return;
+    shrineEl.className = "shrine playing";
+    trialStop = window.SHRINE_TRIALS[p.trialKey](stage, () => completeShrine(p)) || (() => {});
+  };
+
+  const showTalk = () => {
+    const [who, line, last] = talk[talkAt];
+    $("#talk-who").textContent = who;
+    $("#talk-line").textContent = line;
+    const stat = $("#talk-stat");
+    stat.hidden = !last;
+    if (last) stat.textContent = inShrine.stat;
+    $("#shrine-talk").classList.toggle("ready", !last);
+    $("#shrine-exit").hidden = !last;
+  };
+  const nextTalk = () => {
+    if (talkAt < talk.length - 1) { talkAt += 1; showTalk(); }
+    else leaveShrine();
+  };
+  $("#shrine-talk").addEventListener("click", () => { if (talkAt < talk.length - 1) nextTalk(); });
+
+  const completeShrine = (p) => {
+    if (inShrine !== p) return;
+    trialStop();
+    trialStop = () => {};
+    const first = !orbs.has(p.name);
+    orbs.add(p.name);
+    saveOrbs();
+    countOrbs();
+    p.el.classList.add("done");
+    if (use3D) flight.markShrine(POIS.indexOf(p), true);
+    shrineEl.className = "shrine finished";
+    $("#shrine-end").hidden = false;
+    $(".orb-got").textContent = first ? "Spirit Orb obtained!" : "You already have this Spirit Orb. Have another compliment instead.";
+    const monk = p.kind === "tower" ? "The Tower" : p.shrine.replace(/ Shrine$/, "");
+    talk = [[monk, p.monk], ["Arthur", p.body, true]];
+    talkAt = 0;
+    showTalk();
+    if (first && orbs.size === POIS.length) {
+      setTimeout(() => toast("All 15 Spirit Orbs! I'd trade them for a Heart Container, but my heart already belongs to the cause of telling people about Aneesh."), 2400);
+    }
+  };
+
+  const leaveShrine = async () => {
+    if (!inShrine || busy) return;
+    busy = true;
+    const p = inShrine;
+    trialStop();
+    trialStop = () => {};
+    phase = "warping";
+    await WarpFX.out({ ms: 850 });
+    shrineEl.hidden = true;
+    document.body.classList.remove("in-shrine");
+    inShrine = null;
+    if (use3D) {
+      explore({ intro: false });
+      flight.showHero(true);
+      await WarpFX.in({ origin: heroSpot(), ms: 1000 });
+      reveal(p.shrine, orbs.has(p.name) ? "Another Spirit Orb, another reason Aneesh is the greatest. Where to next? (Press M for the map.)" : "I'll be back. That trial isn't going to beat itself. Actually it might. It's an Aneesh trial.");
+    } else {
+      openSlate();
+      select(POIS.indexOf(p));
+      await WarpFX.in({ origin: pinSpot(p), ms: 900 });
+    }
+    busy = false;
+  };
+
+  $("#shrine-leave").addEventListener("click", leaveShrine);
+  $("#shrine-exit").addEventListener("click", leaveShrine);
+  shrinePrompt.addEventListener("click", () => { if (nearShrine) enterShrine(nearShrine); });
+  $("#warp-ask").addEventListener("click", () => {
+    if (!picked) return;
+    $("#warp-q").textContent = `Travel to ${picked.shrine}?`;
+    $("#warp-ask").hidden = true;
+    $("#warp-confirm").hidden = false;
+  });
+  $("#warp-no").addEventListener("click", () => {
+    $("#warp-ask").hidden = false;
+    $("#warp-confirm").hidden = true;
+  });
+  $("#warp-yes").addEventListener("click", () => { if (picked) warpTo(picked); });
+
   /* A little tilt so the Slate feels like a device in your hands. */
   const frame = $(".slate-frame");
   const finePointer = matchMedia("(pointer: fine)").matches;
@@ -474,142 +684,55 @@
 
   /* ---------------- Points of interest ----------------
      x / y are percentages on the map photo. */
-  const POIS = [
-    {
-      x: 50, y: 18, kind: "tower", icon: "&#9650;", name: "Peak Hair Tower",
-      loc: "Northern Aneesh, highest elevation",
-      body: "The tallest point on the island. I tried to climb it once and got distracted halfway up by how good it looked. Unclimbable. Unmatched. Has never had a bad day. I've checked every day.",
-      stat: "Bad hair days on record: 0",
-      quotes: ["I'm the hair and I'm doing incredible.", "Wind-tested at paraglider altitude. Did not move. Not once."],
-    },
-    {
-      x: 51, y: 23, kind: "village", icon: "&#9733;", name: "Brain Plateau",
-      loc: "Forehead Highlands",
-      body: "Like the Great Plateau, except instead of a tutorial it's a Computer Engineering major at Georgia Tech holding a perfect 4.0. Every shrine up here was already solved by the time I arrived. He left notes. They were helpful and kind.",
-      stat: "GPA: 4.0 out of 4.0",
-      quotes: ["4.0. Four point zero. Say it with me.", "Computer Engineering. Cybersecurity. Systems. He does all of it."],
-    },
-    {
-      x: 43, y: 28, kind: "shrine", icon: "&#9673;", name: "Lens of Truth",
-      loc: "West Glasses Lake",
-      body: "Sees everything. He built 3 extended Kalman filters fusing IMU, GPS, and LIDAR for a rocket lander and landed within 0.63% of ground truth. The man always knows exactly where things are. That's how he found me, and I've been grateful ever since.",
-      stat: "Estimation error: 0.63%",
-      quotes: ["I've seen things. Mostly Aneesh being great.", "Sensor fusion? He fuses greatness."],
-    },
-    {
-      x: 56, y: 28, kind: "shrine", icon: "&#9673;", name: "Vice Lead Lookout",
-      loc: "East Glasses Lake",
-      body: "Vice Lead of Guidance, Navigation, and Controls at GT Propulsive Landers. He guides. He navigates. He controls. His rockets land gently, which is more than I can say for me every time I try to tell him how much I admire him.",
-      stat: "Engine tuned: 1.8 kN",
-      quotes: ["Guidance: Aneesh. Navigation: Aneesh. Controls: also Aneesh.", "I watch over rockets. And him."],
-    },
-    {
-      x: 50, y: 33, kind: "tower", icon: "&#9650;", name: "Mount Nose",
-      loc: "Central Aneesh",
-      body: "Second highest peak on the island. With everything he's accomplished, he still breathes the same air as the rest of us. That's how humble he is. Honestly, the air should be thanking him.",
-      stat: "Humility: maxed out",
-      quotes: ["I'm a nose and even I'm impressed.", "Smells like a winner up here."],
-    },
-    {
-      x: 41.5, y: 33.5, kind: "village", icon: "&#8962;", name: "Listening Post",
-      loc: "West Ear Village",
-      body: "He's volunteered 100+ hours teaching STEM to kids aged 11 to 14 and was named the 2025 ScioVirtual Instructor of the Year. Highest-rated course out of 20+. The kids love him. I love him. The data agrees with both of us.",
-      stat: "Instructor of the Year: 2025",
-      quotes: ["Shh. He's listening. He always listens.", "20+ courses and his was rated best. Obviously."],
-    },
-    {
-      x: 59.5, y: 31, kind: "shrine", icon: "&#10022;", name: "Cipher Shrine",
-      loc: "East Ear Ruins",
-      body: "He maintains the open-source Codebusters platform used by 1,000+ Science Olympiad coaches and volunteers, and he writes the cipher tests himself. I tried to solve one. I'm still trying. It's been weeks. Please send snacks.",
-      stat: "Coaches served: 1,000+",
-      quotes: ["Uryyb, V ybir Narrfu. (That's ROT13. You're welcome.)", "Thousands of students suffered through his ciphers. They thanked him."],
-    },
-    {
-      x: 51.5, y: 38, kind: "shrine", icon: "&#10022;", name: "Smile Shrine",
-      loc: "Mouth of the River Charisma",
-      body: "The shrine of leadership. At Nuntius (YC S'25) he directed a team of 8 engineers and delivered a $50K project evaluating LLM agents. People just follow him. I would follow him into a Lynel camp with a pot lid.",
-      stat: "Team led: 8 engineers",
-      quotes: ["This smile has been to Y Combinator.", "Look at it. Look at this smile."],
-    },
-    {
-      x: 51.5, y: 45, kind: "village", icon: "&#8962;", name: "Chin Stable",
-      loc: "Southern Jawline",
-      body: "At Transpira Labs he built the platform that maximized the output of 40+ experts producing frontier AI training data, then built a whole go-to-market platform on the side and landed 5 pilot partners. Most people just have a chin. He has a chin and a résumé.",
-      stat: "Pilot partners landed: 5",
-      quotes: ["Strong chin. Stronger résumé.", "Stop by! We only sell admiration."],
-    },
-    {
-      x: 50, y: 52, kind: "village", icon: "&#8962;", name: "Hablo Bridge",
-      loc: "Neck Crossing",
-      body: "He speaks intermediate Spanish. Intermediate is a lot more Spanish than I speak. Increíble. Magnífico. Those are the only two words I know and I'm spending both of them on him.",
-      stat: "Spanish: intermedio (better than mine)",
-      quotes: ["¡Aneesh es el mejor!", "Hola. He's great. Adiós."],
-    },
-    {
-      x: 51, y: 63, kind: "tower", icon: "&#9650;", name: "Hackathon Hold",
-      loc: "Drawstring Canyon",
-      body: "He won 1st of 70 at the HUD × Y Combinator RL Environments Hackathon with Build, a Scratch-style platform that turns block trees into RL environments so anyone can train models without writing code. $50K+ in prizes. I wasn't even there and I cried. Twice.",
-      stat: "Placement: 1st of 70",
-      quotes: ["First place. Out of SEVENTY.", "No code required. Just Aneesh required."],
-    },
-    {
-      x: 69, y: 74, kind: "tower", icon: "&#9650;", name: "Swoosh Lake",
-      loc: "Hoodie Lowlands",
-      body: "He Just Did It. He won 1st of 794 teams at the MathWorks M3 Challenge for modeling heat resilience in Memphis, took the $20,000 grand prize, and co-authored a paper in SIAM. I can't even model my week. He modeled a city.",
-      stat: "Placement: 1st of 794",
-      quotes: ["793 teams went home sad.", "Published. In SIAM. Casually."],
-    },
-    {
-      x: 11, y: 30, kind: "shrine", icon: "&#10022;", name: "Skyscraper Shrine",
-      loc: "Old City Isle",
-      body: "Somebody asked him for a portfolio and he built an entire macOS in the browser, with a dock, a terminal, a working Mail app, and an AI assistant. Most people make one page. He made an operating system. I've been living in it for a week.",
-      stat: "Fake Wi-Fi panes nobody asked for: 1",
-      quotes: ["I'm a building and he still outbuilt me.", "You call that a portfolio? Yes. Yes I do."],
-    },
-    {
-      x: 90, y: 40, kind: "village", icon: "&#8962;", name: "Bay Area Outpost",
-      loc: "Bay Area Isle, far east",
-      body: "He builds RL environments, evals, and benchmarks for frontier LLMs. The AIs are learning from him. So am I. We're classmates now, me and the robots, and we all agree he's the best teacher we've had.",
-      stat: "AIs taught: a lot",
-      quotes: ["Even the robots look up to him.", "The frontier? He IS the frontier."],
-    },
-    {
-      x: 83, y: 85, kind: "village", icon: "&#9829;", name: "Gift Isle",
-      loc: "Southeast Sea",
-      body: "He bought me this website. Not one domain, three: arthurarmaing.com, arthur-armaing.com, and armaing.com. Who does that? I'll tell you who. The most generous person on the planet. I named an island after it. It's the least I could do.",
-      stat: "Domains gifted: 3",
-      quotes: ["Three domains. THREE.", "Generosity: legendary."],
-    },
-  ];
+  const POIS = window.SHRINES;
 
   const pinsEl = $("#pins");
   const visited = new Set();
+  // Little Sheikah-style glyphs: a shrine's dome with its glowing door, and a tower.
+  const SHRINE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V11a8 8 0 0 1 16 0v9Z" fill="currentColor" opacity=".25"/><path d="M4 20V11a8 8 0 0 1 16 0v9M2 20h20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M10 20v-6a2 2 0 0 1 4 0v6" fill="currentColor"/></svg>';
+  const TOWER_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21 10 8h4l1 13Z" fill="currentColor" opacity=".3"/><path d="M9 21 10 8h4l1 13M6 21h12M7 8h10l-2-4H9Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13" r="1.8" fill="currentColor"/></svg>';
+
+  /* Spirit Orbs: which shrines are done, remembered in this browser. */
+  const orbs = new Set();
+  try { JSON.parse(localStorage.getItem("arthur-orbs") || "[]").forEach((n) => orbs.add(n)); } catch { /* fresh start */ }
+  const saveOrbs = () => { try { localStorage.setItem("arthur-orbs", JSON.stringify([...orbs])); } catch { /* fine */ } };
+  const countOrbs = () => { $("#orb-count").textContent = `${orbs.size} / ${POIS.length}`; };
+  countOrbs();
 
   POIS.forEach((p, i) => {
     const b = document.createElement("button");
     b.type = "button";
     b.className = `pin kind-${p.kind}`;
+    b.classList.toggle("done", orbs.has(p.name));
     if (p.x < 22) b.classList.add("edge-left");
     if (p.x > 78) b.classList.add("edge-right");
     if (p.y < 14) b.classList.add("edge-top");
     b.style.left = `${p.x}%`;
     b.style.top = `${p.y}%`;
     b.setAttribute("aria-label", p.name);
-    b.innerHTML = `<span class="icon"><span>${p.icon}</span></span><span class="name">${p.name}</span><span class="bubble"></span>`;
+    b.innerHTML = `<span class="icon">${p.kind === "tower" ? TOWER_ICON : SHRINE_ICON}</span><span class="name">${p.name}</span><span class="bubble"></span>`;
     b.addEventListener("click", () => select(i));
     pinsEl.appendChild(b);
     p.el = b;
   });
 
   const info = $("#info");
+  let picked = null;
   const select = (i) => {
     const p = POIS[i];
     $$(".pin.active").forEach((el) => el.classList.remove("active"));
     p.el.classList.add("active", "visited");
+    const done = orbs.has(p.name);
+    picked = p;
+    $("#info-kicker").textContent = done ? "Shrine complete" : p.kind === "tower" ? "Tower" : "Shrine";
     $("#info-title").textContent = p.name;
-    $("#info-loc").textContent = p.loc;
-    $("#info-body").textContent = p.body;
-    $("#info-stat").textContent = p.stat;
+    $("#info-loc").textContent = `${p.shrine === p.name ? p.trial : `${p.shrine} · ${p.trial}`} · ${p.loc}`;
+    $("#info-body").textContent = done ? p.body : `${p.teaser} Complete the trial to find out the rest.`;
+    $("#info-stat").textContent = done ? p.stat : "";
+    $("#info-warp").hidden = false;
+    $("#warp-ask").hidden = false;
+    $("#warp-confirm").hidden = true;
+    $("#warp-ask").innerHTML = done ? "Warp back &#9654;" : "Warp here &#9654;";
     info.classList.remove("flash");
     void info.offsetWidth;
     info.classList.add("flash");
@@ -618,7 +741,7 @@
 
     visited.add(i);
     if (visited.size === POIS.length) {
-      setTimeout(() => toast("Island fully explored. Findings: Aneesh is the greatest person I've ever met. Peer reviewed by me."), 600);
+      setTimeout(() => toast("Every shrine on the map checked. Findings: Aneesh is the greatest person I've ever met. Peer reviewed by me."), 600);
     }
   };
 
@@ -724,6 +847,13 @@
         held.add(k);
       } else if (k === "v") swapView();
       else if (k === "m" || k === "escape") openSlate();
+      else if ((k === "f" || k === "enter" || k === " ") && nearShrine) { e.preventDefault(); enterShrine(nearShrine); }
+      return;
+    }
+    if (phase === "warping") return;
+    if (phase === "shrine") {
+      if (e.key === "Escape") leaveShrine();
+      else if (shrineEl.classList.contains("finished") && ["Enter", " ", "a", "A"].includes(e.key)) { e.preventDefault(); nextTalk(); }
       return;
     }
     if (phase === "title") { start(); return; }

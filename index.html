@@ -171,6 +171,7 @@
         <button type="button" id="map-btn">Map <kbd>M</kbd></button>
       </div>
       <p class="explore-hint" id="explore-hint"></p>
+      <button type="button" class="shrine-prompt" id="shrine-prompt" hidden><span class="btn-a">A</span> <span id="shrine-prompt-text">Enter</span></button>
     </div>
   </main>
 
@@ -190,7 +191,7 @@
           <button role="tab" class="tab" data-tab="log" aria-selected="false">Adventure Log</button>
           <button role="tab" class="tab" data-tab="album" aria-selected="false">Album</button>
         </nav>
-        <p class="region">Region: <strong>Aneesh</strong> (all of it, thankfully)</p>
+        <p class="region">Region: <strong>Aneesh</strong> (all of it, thankfully) &middot; <span class="orbs">Spirit Orbs <strong id="orb-count">0 / 15</strong></span></p>
         <button type="button" id="explore" class="explore-go" hidden>Walk around campus &#9654;</button>
       </header>
 
@@ -224,11 +225,19 @@
           <p class="coords" id="coords" aria-hidden="true">E 0000 &middot; N 0000 &middot; Elev 268m</p>
         </div>
         <aside class="info" id="info" aria-live="polite">
-          <p class="info-kicker">Point of interest</p>
-          <h2 id="info-title">Pick a marker</h2>
-          <p class="info-loc" id="info-loc">Tap any icon on the map.</p>
+          <p class="info-kicker" id="info-kicker">Shrines of Greater Aneesh</p>
+          <h2 id="info-title">Pick a shrine</h2>
+          <p class="info-loc" id="info-loc">Tap any glowing marker, then warp there and take its trial.</p>
           <p id="info-body">Every landmark on this island is a skill, a win, or another reason Aneesh is the greatest person I have ever met. I mapped every one by hand. It took forever because I kept stopping to admire them.</p>
           <div class="info-stat" id="info-stat"></div>
+          <div class="info-warp" id="info-warp" hidden>
+            <button type="button" class="explore-go" id="warp-ask">Warp here &#9654;</button>
+            <div class="warp-confirm" id="warp-confirm" hidden>
+              <p id="warp-q">Travel here?</p>
+              <button type="button" class="explore-go" id="warp-yes">Yes</button>
+              <button type="button" class="linkish" id="warp-no">No</button>
+            </div>
+          </div>
         </aside>
       </div>
 
@@ -302,10 +311,40 @@
     <p class="fine">&copy; 2026 Arthur R. Mank. My domains were a gift from a friend who is, coincidentally, the greatest person I've ever met. Fan parody, not affiliated with Nintendo. <a href="https://www.aneeshiyer.com/" target="_blank" rel="noopener">Go visit the legend himself</a>.</p>
   </section>
 
+  <!-- ============ Inside a shrine ============ -->
+  <section id="shrine" class="shrine" aria-label="Shrine" hidden>
+    <div class="shrine-card" id="shrine-card">
+      <p class="sc-name" id="sc-name"></p>
+      <span class="pr-rule" aria-hidden="true"></span>
+      <p class="sc-trial" id="sc-trial"></p>
+    </div>
+    <header class="shrine-head">
+      <div><p class="sh-name" id="sh-name"></p><p class="sh-trial" id="sh-trial"></p></div>
+      <button type="button" class="shrine-leave" id="shrine-leave">Leave shrine</button>
+    </header>
+    <div class="shrine-room">
+      <p class="shrine-how" id="shrine-how"></p>
+      <div class="shrine-stage" id="shrine-stage"></div>
+    </div>
+    <div class="shrine-end" id="shrine-end" hidden>
+      <div class="orb" aria-hidden="true"></div>
+      <p class="orb-got">Spirit Orb obtained!</p>
+      <div class="textbox shrine-talk" id="shrine-talk">
+        <p class="speaker" id="talk-who"></p>
+        <p class="line" id="talk-line"></p>
+        <p class="talk-stat" id="talk-stat" hidden></p>
+        <span class="next" aria-hidden="true">&#9660;</span>
+      </div>
+      <button type="button" class="explore-go" id="shrine-exit" hidden>Leave shrine &#9654;</button>
+    </div>
+  </section>
+
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script src="config.js"></script>
   <script src="flight3d.js"></script>
+  <script src="warp.js"></script>
+  <script src="shrines.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

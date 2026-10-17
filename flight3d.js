@@ -322,7 +322,7 @@ window.Flight3D = (() => {
         model: { uri: "models/arthur-stand.glb", scale: 1 },
       });
     }
-    walkerEntity.show = !firstPerson;
+    walkerEntity.show = !firstPerson && !heroHidden;
     lastFrame = 0;
     mode = "explore";
     clearInterval(sampler);
@@ -358,9 +358,110 @@ window.Flight3D = (() => {
   const toggleView = () => {
     firstPerson = !firstPerson;
     eyePitch = 0;
-    if (walkerEntity) walkerEntity.show = !firstPerson;
+    if (walkerEntity) walkerEntity.show = !firstPerson && !heroHidden;
     if (!firstPerson && scene) scene.camera.lookAtTransform(C.Matrix4.IDENTITY);
     return firstPerson;
+  };
+
+  /* ---------------- Shrines on campus ----------------
+     Each one is a little stone shrine with a ring on the ground and a blue
+     beam of light you can see from across campus, like the game's. */
+  const SHRINE_BLUE = "#4fe3ff";
+  let shrineMarks = [];
+  let heroHidden = false;
+
+  const placeShrines = async (list) => {
+    if (!viewer || shrineMarks.length) return;
+    let heights = list.map(() => ground);
+    if (photoreal) {
+      try {
+        const spots = list.map((sh) => C.Cartographic.fromDegrees(sh.lon, sh.lat));
+        const got = await Promise.race([
+          scene.sampleHeightMostDetailed(spots, [], 0.5),
+          new Promise((r) => setTimeout(() => r(null), 9000)),
+        ]);
+        if (got) heights = got.map((c) => (c && Number.isFinite(c.height) ? c.height : ground));
+      } catch { /* keep the lawn height */ }
+    }
+    shrineMarks = list.map((sh, i) => {
+      const alt = heights[i];
+      sh.alt = alt;
+      const at3 = (h) => C.Cartesian3.fromDegrees(sh.lon, sh.lat, alt + h);
+      const cosLat = Math.cos(C.Math.toRadians(sh.lat));
+      const ring = (r, h) => Array.from({ length: 49 }, (_, k) => {
+        const a = (k / 48) * Math.PI * 2;
+        return C.Cartesian3.fromDegrees(sh.lon + (r * Math.sin(a)) / (M_PER_DEG * cosLat), sh.lat + (r * Math.cos(a)) / M_PER_DEG, alt + h);
+      });
+      const blue = C.Color.fromCssColorString(SHRINE_BLUE);
+      const ents = [
+        // The beam of light, visible from across campus.
+        viewer.entities.add({
+          polyline: {
+            positions: [at3(3.4), at3(140)],
+            width: 16,
+            material: new C.PolylineGlowMaterialProperty({ glowPower: 0.32, taperPower: 0.8, color: blue.withAlpha(sh.done ? 0.35 : 0.85) }),
+          },
+        }),
+        // Stone platform and dome.
+        viewer.entities.add({
+          position: at3(0.3),
+          cylinder: { length: 0.6, topRadius: 4.2, bottomRadius: 4.4, material: C.Color.fromCssColorString("#4b5457") },
+        }),
+        viewer.entities.add({
+          position: at3(0.6),
+          ellipsoid: { radii: new C.Cartesian3(2.5, 2.5, 3), maximumCone: Math.PI / 2, material: C.Color.fromCssColorString("#2b3338") },
+        }),
+        // Glowing Sheikah rings around the base of the dome.
+        viewer.entities.add({
+          polyline: { positions: ring(2.75, 0.9), width: 7, material: new C.PolylineGlowMaterialProperty({ glowPower: 0.45, color: blue }) },
+        }),
+        viewer.entities.add({
+          polyline: { positions: ring(4.1, 0.65), width: 4, material: new C.PolylineGlowMaterialProperty({ glowPower: 0.5, color: blue.withAlpha(0.7) }) },
+        }),
+        viewer.entities.add({
+          position: at3(3.5),
+          point: { pixelSize: 12, color: blue, outlineColor: C.Color.WHITE.withAlpha(0.6), outlineWidth: 2 },
+        }),
+        viewer.entities.add({
+          position: at3(7),
+          label: {
+            text: sh.label, font: "600 15px Nunito Sans, sans-serif",
+            fillColor: C.Color.WHITE, outlineColor: C.Color.fromCssColorString("#06222b"), outlineWidth: 4,
+            style: C.LabelStyle.FILL_AND_OUTLINE, verticalOrigin: C.VerticalOrigin.BOTTOM,
+            distanceDisplayCondition: new C.DistanceDisplayCondition(25, 450),
+            disableDepthTestDistance: 120,
+          },
+        }),
+      ];
+      return { sh, beam: ents[0] };
+    });
+  };
+
+  /* Completed shrines glow softer, like the game's. */
+  const markShrine = (i, done) => {
+    const m = shrineMarks[i];
+    if (!m) return;
+    m.sh.done = done;
+    m.beam.polyline.material = new C.PolylineGlowMaterialProperty({ glowPower: 0.32, taperPower: 0.8, color: C.Color.fromCssColorString(SHRINE_BLUE).withAlpha(done ? 0.35 : 0.85) });
+  };
+
+  /* Put Arthur a few steps south of a shrine, facing it. */
+  const warpTo = (spot) => {
+    if (!viewer) return;
+    const alt = Number.isFinite(spot.alt) ? spot.alt : ground;
+    walker = { lat: spot.lat - 9 / M_PER_DEG, lon: spot.lon, alt, heading: 0 };
+    targetAlt = alt;
+    camYaw = 0;
+    camPitch = -0.28;
+    eyePitch = 0;
+    if (walkerEntity) placeWalker();
+  };
+
+  /* Hide him while he's turned into light. */
+  const showHero = (show) => {
+    heroHidden = !show;
+    if (walkerEntity) walkerEntity.show = !firstPerson && !heroHidden;
+    if (stander) stander.show = !heroHidden;
   };
 
   const init = async (container) => {
@@ -500,6 +601,7 @@ window.Flight3D = (() => {
   const idle = () => {
     if (!viewer) return;
     endExplore();
+    heroHidden = false;
     if (stander) { viewer.entities.remove(stander); stander = null; }
     if (glider) { viewer.entities.remove(glider); glider = null; }
     viewer.clock.shouldAnimate = false;
@@ -517,6 +619,7 @@ window.Flight3D = (() => {
   return {
     init, start, lookAtSlate, skipToLanding, idle,
     explore, pauseExplore, setMove, turn, zoom, toggleView,
+    placeShrines, markShrine, warpTo, showHero,
     get exploring() { return mode === "explore"; },
     get ready() { return !!viewer; },
     get photoreal() { return photoreal; },
