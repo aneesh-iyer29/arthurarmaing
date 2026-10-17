@@ -355,6 +355,28 @@
   };
   const stopChatter = () => clearInterval(chatter);
 
+  /* Coordinates and elevation under the cursor, read from the map's own shading. */
+  const mapEl = $("#map");
+  const coordsEl = $("#coords");
+  const mapImg = $("img", mapEl);
+  const probe = document.createElement("canvas");
+  probe.width = probe.height = 200;
+  const probeCtx = probe.getContext("2d", { willReadFrequently: true });
+  const drawProbe = () => { try { probeCtx.drawImage(mapImg, 0, 0, 200, 200); } catch { /* not loaded yet */ } };
+  mapImg.complete ? drawProbe() : mapImg.addEventListener("load", drawProbe);
+  mapEl.addEventListener("pointermove", (e) => {
+    const r = mapEl.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width;
+    const y = (e.clientY - r.top) / r.height;
+    let elev = 268;
+    try {
+      const [red, green, blue] = probeCtx.getImageData(Math.floor(x * 199), Math.floor(y * 199), 1, 1).data;
+      elev = Math.round(268 + (1 - (red * 0.3 + green * 0.59 + blue * 0.11) / 255) * 1400);
+    } catch { /* keep the default */ }
+    const pad = (n) => `${n < 0 ? "-" : ""}${String(Math.abs(n)).padStart(4, "0")}`;
+    coordsEl.textContent = `E ${pad(Math.round((x - 0.5) * 4000))} · N ${pad(Math.round((0.5 - y) * 4000))} · Elev ${elev}m`;
+  });
+
   /* ---------------- Tabs ---------------- */
   const showTab = (name) => {
     $$(".tab").forEach((t) => t.setAttribute("aria-selected", String(t.dataset.tab === name)));

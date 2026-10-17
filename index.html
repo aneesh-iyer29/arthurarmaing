@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Marcellus+SC&family=Nunito+Sans:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-  <link rel="preload" as="image" href="img/aneesh-map.jpg">
+  <link rel="preload" as="image" href="img/aneesh-hyrule.jpg">
 </head>
 <body>
 
@@ -135,16 +135,21 @@
       <div class="panel panel-map" data-panel="map">
         <div class="map-wrap">
           <div class="map" id="map">
-            <img src="img/aneesh-map.jpg" alt="The entire map of the world, which is Aneesh's face" draggable="false">
-            <div class="map-tint" aria-hidden="true"></div>
+            <img src="img/aneesh-hyrule.jpg" alt="The entire map of the world, which is Aneesh's face rendered as mountains, plains, and lakes" draggable="false">
             <svg class="map-contours" aria-hidden="true">
               <defs>
-                <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
-                  <path d="M60 0H0V60" fill="none" stroke="rgba(230,240,220,.18)" stroke-width="1"/>
+                <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
+                  <path d="M80 0H0V80" fill="none" stroke="rgba(235,240,225,.12)" stroke-width="1"/>
                 </pattern>
               </defs>
               <rect width="100%" height="100%" fill="url(#grid)"/>
             </svg>
+            <div class="regions" aria-hidden="true">
+              <span style="left:80%;top:9%">Window Canals</span>
+              <span style="left:14%;top:56%">Old Tower District</span>
+              <span style="left:28%;top:80%">Hoodie Highlands</span>
+              <span style="left:84%;top:66%">Shoulder Steppe</span>
+            </div>
             <div class="fog" aria-hidden="true"></div>
             <div id="pins"></div>
             <div class="you-are-here" style="left:20%;top:90%" title="Arthur">
@@ -152,6 +157,7 @@
             </div>
           </div>
           <p class="map-name"><span>Greater Aneesh</span><em>The only region worth exploring</em></p>
+          <p class="coords" id="coords" aria-hidden="true">E 0000 &middot; N 0000 &middot; Elev 268m</p>
         </div>
         <aside class="info" id="info" aria-live="polite">
           <p class="info-kicker">Point of interest</p>
