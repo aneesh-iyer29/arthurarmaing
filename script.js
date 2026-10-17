@@ -34,6 +34,36 @@
   const timers = [];
   const later = (fn, ms) => timers.push(setTimeout(fn, ms));
 
+  /* ---------------- Loading screen ----------------
+     Real Georgia Tech photos with game-style tips while the 3D campus loads. */
+  const TIPS = [
+    { img: "img/gt/tech-green-sunset.jpg", place: "Tech Green", text: "The heart of campus and the best landing spot for a paraglider. Aneesh has walked across it. Arthur now walks across it on purpose, just in case." },
+    { img: "img/gt/tech-tower-spring.jpg", place: "Tech Tower", text: "Climbing it is strongly discouraged. Being impressed by Aneesh is strongly encouraged." },
+    { img: "img/gt/midtown-from-clough.jpg", place: "Clough Commons", text: "Offers a great view of Midtown. Arthur prefers the view of Aneesh studying three tables over." },
+    { img: "img/gt/brick-walk-spring.jpg", place: "The Brick Walk", text: "Every brick was laid by hand. Every one of Aneesh's wins was earned by hand. Coincidence? Arthur thinks not." },
+    { img: "img/gt/bobby-dodd-stands-dusk.jpg", place: "Bobby Dodd Stadium", text: "Seats about 55,000 people. Still not enough room for everyone Aneesh has impressed." },
+    { img: "img/gt/ferst-drive-night.jpg", place: "Ferst Drive at Night", text: "Quiet enough to hear yourself think. Arthur mostly hears himself thinking about Aneesh." },
+    { img: "img/gt/bobby-dodd-concert-night.jpg", place: "The Midtown Skyline", text: "Tens of thousands of lights, and none of them shine as bright as a 4.0 in Computer Engineering." },
+  ];
+  const loading = $("#loading");
+  const loadingPhoto = $("#loading-photo");
+  let tipIndex = Math.floor(Math.random() * TIPS.length);
+  const showTip = () => {
+    const tip = TIPS[tipIndex % TIPS.length];
+    tipIndex += 1;
+    loadingPhoto.classList.remove("show");
+    setTimeout(() => {
+      loadingPhoto.onload = () => loadingPhoto.classList.add("show");
+      loadingPhoto.src = tip.img;
+      loadingPhoto.alt = tip.place;
+      $("#tip-place").textContent = tip.place;
+      $("#tip-text").textContent = tip.text;
+    }, loadingPhoto.src ? 450 : 0);
+  };
+  showTip();
+  const tipTimer = setInterval(showTip, 4500);
+  const loadingMin = new Promise((r) => setTimeout(r, reduced ? 600 : 3800));
+
   /* The 3D descent loads in the background while the title is up. Until it
      settles (or if it can't run), the 2D descent is the fallback. */
   const flight = window.Flight3D;
@@ -44,6 +74,11 @@
     use3D = ok;
     world.classList.toggle("is-3d", ok);
     press.textContent = "Tap or press any key to begin";
+  });
+  Promise.all([ready3D, loadingMin]).then(() => {
+    clearInterval(tipTimer);
+    loading.classList.add("done");
+    setTimeout(() => { loading.hidden = true; }, 900);
   });
 
   const typeLine = (html) => {

@@ -194,6 +194,7 @@ window.Flight3D = (() => {
       scene.skyAtmosphere.show = true;
       scene.fog.enabled = true;
       viewer.clock.currentTime = C.JulianDate.fromIso8601(START_TIME);
+      scene.preRender.addEventListener(tick);
 
       const key = await getKey();
       if (key) {
@@ -203,6 +204,11 @@ window.Flight3D = (() => {
           scene.primitives.add(tileset);
           scene.globe.show = false;
           photoreal = true;
+          // Hold the loading screen until campus has actually streamed in.
+          await Promise.race([
+            new Promise((r) => tileset.initialTilesLoaded.addEventListener(r)),
+            new Promise((r) => setTimeout(r, 9000)),
+          ]);
         } catch (err) {
           console.warn("Google 3D tiles unavailable (check the key), using the satellite map.", err);
         }
@@ -217,7 +223,6 @@ window.Flight3D = (() => {
         ground = 0;
       }
 
-      scene.preRender.addEventListener(tick);
       if (photoreal) sampleGround();
       return true;
     } catch (err) {

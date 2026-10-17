@@ -18,6 +18,18 @@
 </head>
 <body>
 
+  <!-- ============ Loading screen: real Georgia Tech, with tips ============ -->
+  <div id="loading" class="loading" role="status" aria-live="polite">
+    <img class="loading-photo" id="loading-photo" alt="">
+    <div class="loading-tip">
+      <p class="tip-place" id="tip-place"></p>
+      <p class="tip-text" id="tip-text"></p>
+    </div>
+    <div class="loading-spin" aria-hidden="true">
+      <svg viewBox="0 0 64 40"><path d="M2 20 Q32 -6 62 20 Q32 46 2 20Z" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="32" cy="20" r="8" fill="none" stroke="currentColor" stroke-width="3"/><path d="M32 30 L32 40" stroke="currentColor" stroke-width="3"/></svg>
+    </div>
+  </div>
+
   <!-- ============ The overworld: sky, descent, landing ============ -->
   <main id="world" aria-label="Arthur paragliding down onto Tech Green at Georgia Tech">
     <div id="globe" aria-hidden="true"></div>

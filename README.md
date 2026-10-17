@@ -8,7 +8,9 @@ Plain static site with no build step:
 
 - `index.html`, `style.css`, `script.js`: the page, the landing dialogue, and the Sheikah Slate.
 - `flight3d.js`: the 3D descent onto Tech Green, built on CesiumJS (loaded from jsDelivr).
-- `models/`: Arthur's low-poly gliding and standing models. Rebuild them with `node tools/build-models.js`.
+- `models/`: Arthur's low-poly gliding and standing models, with his face. Rebuild them with `node tools/build-models.js`.
+- `img/aneesh-hyrule.jpg`: the Slate map, Aneesh's portrait turned into terrain. Rebuild it with `python3 tools/build-map.py`.
+- `img/gt/`: Georgia Tech photos for the loading screens.
 - `api/config.js`: a Vercel function that hands the page the Google Maps key.
 
 ## The 3D descent
@@ -45,4 +47,5 @@ domain under Project Settings, then Domains.
 **GitHub Pages, Netlify, Cloudflare Pages:** works as-is as a static site (use `config.js`
 for the key). For GitHub Pages with a custom domain, add a `CNAME` file containing the domain.
 
-Fan parody. Not affiliated with or endorsed by Nintendo.
+Fan parody. Not affiliated with or endorsed by Nintendo. Every asset here is original or
+a personal photo; nothing is taken from the game.

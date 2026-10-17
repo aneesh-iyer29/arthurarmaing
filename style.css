@@ -27,6 +27,44 @@ body.slate-open { overflow-y: auto; }
 button { font: inherit; color: inherit; }
 img { display: block; max-width: 100%; }
 
+/* ================= Loading screen ================= */
+.loading {
+  position: fixed; inset: 0; z-index: 30;
+  background: #050607;
+  transition: opacity .8s ease;
+}
+.loading.done { opacity: 0; pointer-events: none; }
+.loading-photo {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  opacity: 0; transition: opacity .9s ease;
+  filter: saturate(.85) brightness(.62);
+}
+.loading-photo.show { opacity: 1; }
+.loading::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(transparent 45%, rgba(0, 0, 0, .78)), radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, .55));
+}
+.loading-tip {
+  position: absolute; z-index: 1; left: max(24px, 6vw); right: 120px; bottom: max(28px, 8vh);
+  max-width: 620px;
+}
+.tip-place {
+  margin: 0 0 8px; font-family: var(--title); font-size: clamp(22px, 3.4vw, 34px); color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, .6);
+}
+.tip-place::after {
+  content: ""; display: block; width: 72px; height: 2px; margin-top: 8px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+}
+.tip-text { margin: 0; font-size: clamp(14px, 1.9vw, 17px); line-height: 1.55; color: #e9e3cf; text-shadow: 0 1px 6px rgba(0, 0, 0, .7); }
+.loading-spin {
+  position: absolute; z-index: 1; right: max(24px, 5vw); bottom: max(28px, 8vh);
+  width: 54px; color: var(--cyan);
+  filter: drop-shadow(0 0 8px rgba(79, 227, 255, .7));
+  animation: pulse 1.4s ease-in-out infinite;
+}
+.loading-spin svg { display: block; width: 100%; }
+
 /* ================= Overworld ================= */
 #world {
   position: fixed;
