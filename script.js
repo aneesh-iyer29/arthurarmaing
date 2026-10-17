@@ -231,14 +231,14 @@
      x / y are percentages on the map photo. */
   const POIS = [
     {
-      x: 50, y: 9, kind: "tower", icon: "&#9650;", name: "Peak Hair Tower",
+      x: 50, y: 18, kind: "tower", icon: "&#9650;", name: "Peak Hair Tower",
       loc: "Northern Aneesh, highest elevation",
       body: "The tallest point in the region. I tried to climb it once and got distracted by how good it looked. Unclimbable. Unmatched. Never had a bad day.",
       stat: "Hair days rated bad: 0",
       quotes: ["I'm the hair and I'm doing incredible.", "Wind-tested at paraglider altitude. Did not move."],
     },
     {
-      x: 51, y: 19, kind: "village", icon: "&#9733;", name: "Brain Plateau",
+      x: 51, y: 23, kind: "village", icon: "&#9733;", name: "Brain Plateau",
       loc: "Forehead Highlands",
       body: "Like the Great Plateau, except instead of a tutorial area it's a Computer Engineering major at Georgia Tech holding a 4.0. Shrines up here are all solved already.",
       stat: "GPA: 4.0 out of 4.0",
@@ -252,77 +252,77 @@
       quotes: ["I've seen things. Mostly Aneesh being great.", "Sensor fusion? He fuses greatness."],
     },
     {
-      x: 59, y: 27, kind: "shrine", icon: "&#9673;", name: "Vice Lead Lookout",
+      x: 56, y: 28, kind: "shrine", icon: "&#9673;", name: "Vice Lead Lookout",
       loc: "East Glasses Region",
       body: "Vice Lead of Guidance, Navigation, and Controls at GT Propulsive Landers. He guides. He navigates. He controls. Most importantly, his rocket lands gently, unlike me trying to talk to him.",
       stat: "Engine tuned: 1.8 kN",
       quotes: ["Guidance: Aneesh. Navigation: Aneesh. Controls: also Aneesh.", "I watch over rockets. And him."],
     },
     {
-      x: 51, y: 33, kind: "tower", icon: "&#9650;", name: "Mount Nose",
+      x: 50, y: 33, kind: "tower", icon: "&#9650;", name: "Mount Nose",
       loc: "Central Aneesh",
       body: "Second highest peak in the region. Despite all his accomplishments, he still breathes the same air as the rest of us. Incredibly humble of him.",
       stat: "Humility: maxed out",
       quotes: ["I'm a nose and even I'm impressed.", "Smells like a winner up here."],
     },
     {
-      x: 37, y: 32, kind: "village", icon: "&#8962;", name: "Listening Post",
+      x: 41.5, y: 33.5, kind: "village", icon: "&#8962;", name: "Listening Post",
       loc: "West Ear Village",
       body: "Volunteered 100+ hours teaching STEM to kids aged 11 to 14 and was named the 2025 ScioVirtual Instructor of the Year. Highest-rated course out of 20+. Kids love him. I love him. The data agrees.",
       stat: "Instructor of the Year: 2025",
       quotes: ["Shh. He's listening. He always listens.", "20+ courses and his was rated best. Obviously."],
     },
     {
-      x: 65, y: 31, kind: "shrine", icon: "&#10022;", name: "Cipher Shrine",
+      x: 59.5, y: 31, kind: "shrine", icon: "&#10022;", name: "Cipher Shrine",
       loc: "East Ear Ruins",
       body: "Maintains the open-source Codebusters platform used by 1,000+ Science Olympiad coaches and volunteers, and writes the cipher tests himself. I tried to solve one. I am still trying. Please send help.",
       stat: "Coaches served: 1,000+",
       quotes: ["Uryyb, V ybir Narrfu. (That's ROT13. You're welcome.)", "Thousands of students suffered through his ciphers. They thanked him."],
     },
     {
-      x: 52, y: 38, kind: "shrine", icon: "&#10022;", name: "Smile Shrine",
+      x: 51.5, y: 38, kind: "shrine", icon: "&#10022;", name: "Smile Shrine",
       loc: "Mouth of the River Charisma",
       body: "The shrine of leadership. At Nuntius (YC S'25) he directed a team of 8 engineers and delivered a $50K project evaluating LLM agents. People just follow him. I would follow him into a Lynel.",
       stat: "Team led: 8 engineers",
       quotes: ["This smile has been to Y Combinator.", "Look at it. Look at this smile."],
     },
     {
-      x: 52, y: 47, kind: "village", icon: "&#8962;", name: "Chin Stable",
+      x: 51.5, y: 45, kind: "village", icon: "&#8962;", name: "Chin Stable",
       loc: "Southern Jawline",
       body: "At Transpira Labs he built the platform that maximized output of 40+ experts producing frontier AI training data, then built a whole GTM platform on the side and landed 5 pilot partners. Most people just have a chin.",
       stat: "Pilot partners landed: 5",
       quotes: ["Strong chin. Stronger résumé.", "Stop by! We only sell admiration."],
     },
     {
-      x: 50, y: 57, kind: "village", icon: "&#8962;", name: "Hablo Bridge",
+      x: 50, y: 52, kind: "village", icon: "&#8962;", name: "Hablo Bridge",
       loc: "Neck Crossing",
       body: "Speaks intermediate Spanish. Intermediate is a lot more Spanish than I speak. Increíble. Magnífico. Those are the only two words I know and I'm spending them on him.",
       stat: "Spanish: intermedio (better than mine)",
       quotes: ["¡Aneesh es el mejor!", "Hola. He's great. Adiós."],
     },
     {
-      x: 51, y: 70, kind: "tower", icon: "&#9650;", name: "Hackathon Hold",
+      x: 51, y: 63, kind: "tower", icon: "&#9650;", name: "Hackathon Hold",
       loc: "Drawstring Canyon",
       body: "Won 1st of 70 at the HUD × Y Combinator RL Environments Hackathon with Build, a Scratch-style platform that turns block trees into RL environments so anyone can train models without writing code. $50K+ in prizes. I wasn't there and I still cried.",
       stat: "Placement: 1st of 70",
       quotes: ["First place. Out of SEVENTY.", "No code required. Just Aneesh required."],
     },
     {
-      x: 69, y: 80, kind: "tower", icon: "&#9650;", name: "Swoosh Plains",
+      x: 69, y: 74, kind: "tower", icon: "&#9650;", name: "Swoosh Plains",
       loc: "Hoodie Lowlands",
       body: "He Just Did It. Won 1st of 794 teams at the MathWorks M3 Challenge for modeling heat resilience in Memphis, took the $20,000 grand prize, and co-authored a paper in SIAM. I can't even model my week.",
       stat: "Placement: 1st of 794",
       quotes: ["793 teams went home sad.", "Published. In SIAM. Casually."],
     },
     {
-      x: 12, y: 26, kind: "shrine", icon: "&#10022;", name: "Skyscraper Shrine",
+      x: 11, y: 30, kind: "shrine", icon: "&#10022;", name: "Skyscraper Shrine",
       loc: "Old City (background)",
       body: "Someone asked him for a portfolio and he built an entire macOS in the browser, with a dock, a terminal, a working Mail app, and an AI assistant. Most people make one page. He made an operating system.",
       stat: "Fake Wi-Fi panes nobody asked for: 1",
       quotes: ["I'm a building and he still outbuilt me.", "You call that a portfolio? Yes. Yes I do."],
     },
     {
-      x: 88, y: 42, kind: "village", icon: "&#8962;", name: "Bay Area Outpost",
+      x: 90, y: 40, kind: "village", icon: "&#8962;", name: "Bay Area Outpost",
       loc: "Far East (San Francisco)",
       body: "Builds RL environments, evals, and benchmarks for frontier LLMs. The AIs are learning from him. So am I. We're classmates now.",
       stat: "AIs taught: a lot",
@@ -421,7 +421,8 @@
     let elev = 268;
     try {
       const [red, green, blue] = probeCtx.getImageData(Math.floor(x * 199), Math.floor(y * 199), 1, 1).data;
-      elev = Math.round(268 + (1 - (red * 0.3 + green * 0.59 + blue * 0.11) / 255) * 1400);
+      // The sea is the only blue on the map.
+      elev = blue > red + 14 ? 0 : Math.round(268 + (1 - (red * 0.3 + green * 0.59 + blue * 0.11) / 255) * 1400);
     } catch { /* keep the default */ }
     const pad = (n) => `${n < 0 ? "-" : ""}${String(Math.abs(n)).padStart(4, "0")}`;
     coordsEl.textContent = `E ${pad(Math.round((x - 0.5) * 4000))} · N ${pad(Math.round((0.5 - y) * 4000))} · Elev ${elev}m`;
