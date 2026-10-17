@@ -1,6 +1,6 @@
 # arthurarmaing
 
-The official personal website of Arthur R. Mank, told in his own words. He
+The official personal website of Arthur Armaing, told in his own words. He
 paraglides onto Tech Green, pulls out his Sheikah Slate, and finds that the
 entire map is an island shaped like Aneesh Iyer. Then he walks you around
 campus and has something nice to say about Aneesh at every building.
