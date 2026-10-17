@@ -27,43 +27,120 @@ body.slate-open { overflow-y: auto; }
 button { font: inherit; color: inherit; }
 img { display: block; max-width: 100%; }
 
-/* ================= Loading screen ================= */
-.loading {
+/* ================= Loading screen =================
+   Laid out after the game's loading screen: a white band wipes in across the
+   top with stats and icons, tips sit below on black, and a logo block in the
+   corner fills as loading progresses. */
+.loader {
   position: fixed; inset: 0; z-index: 30;
-  background: #050607;
-  transition: opacity .8s ease;
+  background: #000; color: #fff;
+  font-family: var(--body);
+  transition: opacity .7s ease;
 }
-.loading.done { opacity: 0; pointer-events: none; }
-.loading-photo {
-  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-  opacity: 0; transition: opacity .9s ease;
-  filter: saturate(.85) brightness(.62);
+.loader.done { opacity: 0; pointer-events: none; }
+.ld-top { position: relative; height: 38%; overflow: hidden; }
+.ld-band {
+  position: absolute; top: 0; right: 0; height: 100%; width: 0;
+  background: #fff; color: #141414;
+  animation: band-in .95s cubic-bezier(.55, .05, .3, 1) .25s forwards;
 }
-.loading-photo.show { opacity: 1; }
-.loading::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(transparent 45%, rgba(0, 0, 0, .78)), radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, .55));
+.ld-edge {
+  position: absolute; top: 0; right: 0; height: 100%; width: 170px; margin-right: -30px;
+  background: linear-gradient(to right, #000, #fff);
+  transform: skewX(7deg);
+  animation: edge-in .95s cubic-bezier(.55, .05, .3, 1) .25s forwards;
 }
-.loading-tip {
-  position: absolute; z-index: 1; left: max(24px, 6vw); right: 120px; bottom: max(28px, 8vh);
-  max-width: 620px;
+.ld-band > * { opacity: 0; animation: fade-in .5s ease 1.25s forwards; }
+
+.ld-title {
+  position: absolute; left: 40px; bottom: 0; margin: 0; padding: 4px 6px 10px 0;
+  font-weight: 800; font-size: clamp(16px, 2vw, 20px); letter-spacing: .02em;
 }
-.tip-place {
-  margin: 0 0 8px; font-family: var(--title); font-size: clamp(22px, 3.4vw, 34px); color: #fff;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, .6);
+.ld-stats {
+  position: absolute; top: clamp(16px, 4.5vh, 34px); right: 45px;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 2px;
+  font-size: 15px; font-weight: 600;
 }
-.tip-place::after {
-  content: ""; display: block; width: 72px; height: 2px; margin-top: 8px;
-  background: linear-gradient(90deg, var(--gold), transparent);
+.ld-hearts { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px; width: 230px; margin-bottom: 2px; }
+.ld-hearts svg { width: 15px; height: 14px; fill: #e5353b; stroke: #141414; stroke-width: 1.5; }
+.ld-stamina { display: flex; gap: 3px; margin-bottom: 4px; }
+.ld-stamina svg { width: 20px; height: 20px; fill: none; stroke: #3fb043; stroke-width: 4; }
+.ld-stat { display: flex; align-items: center; justify-content: flex-end; gap: 0; height: 28px; font-variant-numeric: tabular-nums; }
+.ld-stat .ic { width: 22px; height: 22px; margin-left: 10px; fill: #141414; stroke: #141414; }
+.ld-stat .ic.gem { fill: #3fb043; stroke: none; }
+.ld-icons { position: absolute; right: 45px; bottom: 0; display: flex; align-items: flex-end; gap: 22px; }
+.ld-icons svg { width: 50px; height: 50px; fill: #141414; stroke: #141414; stroke-width: 2.5; stroke-linecap: round; }
+.ld-icons .b1 { animation: bob-a 4.8s ease-in-out infinite; }
+.ld-icons .b2 { animation: bob-b 1.6s ease-in-out infinite; }
+.ld-icons .b3 { animation: bob-a 5.5s ease-in-out infinite reverse; }
+.ld-icons .b4 { animation: bob-b 3.3s ease-in-out infinite; }
+
+.ld-bottom { position: relative; height: 62%; }
+.ld-bottom > * { opacity: 0; animation: fade-in .5s ease 1.35s forwards; }
+.ld-tip {
+  position: absolute; top: 14px; left: 40px; max-width: 50%; margin: 0;
+  font-weight: 700; font-size: clamp(14px, 1.6vw, 17px); line-height: 1.5;
+  transition: opacity .3s;
 }
-.tip-text { margin: 0; font-size: clamp(14px, 1.9vw, 17px); line-height: 1.55; color: #e9e3cf; text-shadow: 0 1px 6px rgba(0, 0, 0, .7); }
-.loading-spin {
-  position: absolute; z-index: 1; right: max(24px, 5vw); bottom: max(28px, 8vh);
-  width: 54px; color: var(--cyan);
-  filter: drop-shadow(0 0 8px rgba(79, 227, 255, .7));
-  animation: pulse 1.4s ease-in-out infinite;
+.ld-tip.swap { opacity: 0 !important; }
+.ld-next {
+  position: absolute; top: 12px; right: 50px;
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: 0; padding: 0; cursor: pointer;
+  font-weight: 700; font-size: 15px; color: #fff;
 }
-.loading-spin svg { display: block; width: 100%; }
+.btn-a {
+  display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
+  background: #fff; color: #000; font-size: 12px; font-weight: 800;
+}
+.ld-logo {
+  position: absolute; right: 48px; bottom: 34px; width: 221px; height: 173px;
+  background: #20221c; overflow: hidden;
+  display: grid; place-items: center; text-align: center;
+}
+.ld-fill { position: absolute; inset: 0 auto 0 0; width: 0; background: #fff; transition: width .4s ease; }
+.ld-logo p {
+  position: relative; margin: 0; padding: 0 14px;
+  font-family: var(--title); font-size: 26px; line-height: 1.05; color: #fff;
+  mix-blend-mode: difference;
+}
+.ld-logo small { display: block; font-size: 11px; letter-spacing: .25em; margin-bottom: 6px; }
+.ld-tri { position: absolute; right: 290px; bottom: 40px; width: 40px; height: 36px; }
+.ld-tri i {
+  position: absolute; width: 8px; height: 8px; border-radius: 50%; background: #fff;
+  animation: tri 1.2s ease-in-out infinite;
+}
+.ld-tri i:nth-child(1) { left: 16px; top: 0; }
+.ld-tri i:nth-child(2) { left: 24px; top: 14px; animation-delay: .2s; }
+.ld-tri i:nth-child(3) { left: 32px; top: 28px; animation-delay: .4s; }
+.ld-tri i:nth-child(4) { left: 16px; top: 28px; animation-delay: .6s; }
+.ld-tri i:nth-child(5) { left: 0; top: 28px; animation-delay: .8s; }
+.ld-tri i:nth-child(6) { left: 8px; top: 14px; animation-delay: 1s; }
+
+@keyframes band-in { to { width: 100%; } }
+@keyframes edge-in { 0% { right: 0; opacity: 1; } 90% { opacity: 1; } 100% { right: 100%; opacity: 0; } }
+@keyframes fade-in { to { opacity: 1; } }
+@keyframes bob-a { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes bob-b { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-3px) rotate(-4deg); } }
+@keyframes tri { 0%, 100% { opacity: .2; transform: scale(.8); } 30% { opacity: 1; transform: scale(1); } }
+
+@media (max-width: 700px) {
+  .ld-top { height: 34%; }
+  .ld-title { left: 16px; }
+  .ld-stats { right: 16px; top: 14px; font-size: 13px; }
+  .ld-hearts { width: 150px; }
+  .ld-hearts svg { width: 12px; height: 11px; }
+  .ld-stat { height: 22px; }
+  .ld-stat:nth-of-type(n+3) { display: none; }
+  .ld-icons { right: 16px; gap: 10px; }
+  .ld-icons svg { width: 30px; height: 30px; }
+  .ld-tip { left: 16px; max-width: calc(100% - 32px); top: 16px; }
+  .ld-next { top: auto; bottom: 16px; left: 16px; right: auto; }
+  .ld-logo { right: 16px; bottom: 16px; width: 150px; height: 118px; }
+  .ld-logo p { font-size: 18px; }
+  .ld-logo small { font-size: 9px; letter-spacing: .12em; }
+  .ld-tri { right: 184px; bottom: 20px; }
+}
 
 /* ================= Overworld ================= */
 #world {
