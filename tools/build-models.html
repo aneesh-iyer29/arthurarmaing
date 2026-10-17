@@ -17,7 +17,7 @@
 
   const mat = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.75, metalness: 0, flatShading: true, ...extra });
   const SKIN = mat(0xf1c7a1);
-  const HAIR = mat(0xe3b54a);
+  const HAIR = mat(0x3a2a1e); // Arthur's dark brown, to match his face
   const TUNIC = mat(0x2f6fc0);
   const TUNIC_DARK = mat(0x24548f);
   const PANTS = mat(0x5a4532);
@@ -27,6 +27,11 @@
   const SLATE = mat(0x2b3036, { roughness: 0.5 });
   const GLOW = mat(0x4fe3ff, { emissive: 0x4fe3ff, emissiveIntensity: 1.5 });
   const ORANGE = mat(0xff9a3c, { emissive: 0xff7a1c, emissiveIntensity: 1.2 });
+
+  // Arthur's real face (img/arthur-face.png), passed in by build-models.js.
+  const faceTex = await new THREE.TextureLoader().loadAsync(window.FACE_URL);
+  faceTex.colorSpace = THREE.SRGBColorSpace;
+  const FACE = new THREE.MeshBasicMaterial({ map: faceTex, transparent: true, alphaTest: 0.35 });
 
   const mesh = (geo, m, x = 0, y = 0, z = 0) => {
     const o = new THREE.Mesh(geo, m);
@@ -63,28 +68,12 @@
     // Neck and head
     g.add(mesh(new THREE.CylinderGeometry(0.055, 0.06, 0.08, 6), SKIN, 0, 1.42, 0));
     g.add(mesh(new THREE.IcosahedronGeometry(0.135, 1), SKIN, 0.01, 1.56, 0));
-    // Eyes and nose
-    g.add(mesh(new THREE.SphereGeometry(0.018, 6, 4), EYE, 0.125, 1.575, 0.045));
-    g.add(mesh(new THREE.SphereGeometry(0.018, 6, 4), EYE, 0.125, 1.575, -0.045));
-    g.add(mesh(new THREE.ConeGeometry(0.018, 0.04, 4), SKIN, 0.15, 1.545, 0).rotateZ(-Math.PI / 2));
-    // Pointed ears, angled back
-    const ear = (side) => {
-      const e = mesh(new THREE.ConeGeometry(0.035, 0.14, 4), SKIN, -0.01, 1.58, side * 0.15);
-      e.rotation.set(side * -1.25, 0, 0.45);
-      return e;
-    };
-    g.add(ear(1), ear(-1));
-    // Hair: a cap, swept bangs, and a short ponytail
-    const cap = mesh(new THREE.SphereGeometry(0.15, 9, 6, 0, Math.PI * 2, 0, Math.PI * 0.55), HAIR, -0.015, 1.585, 0);
-    g.add(cap);
-    for (const [z, tilt] of [[0.06, 0.5], [0, 0.2], [-0.06, -0.3]]) {
-      const bang = mesh(new THREE.ConeGeometry(0.045, 0.13, 4), HAIR, 0.11, 1.64, z);
-      bang.rotation.set(tilt, 0, 2.5);
-      g.add(bang);
-    }
-    const tail = mesh(new THREE.ConeGeometry(0.04, 0.18, 5), HAIR, -0.16, 1.5, 0);
-    tail.rotation.z = -0.5;
-    g.add(tail);
+    // Back of the head in his hair color
+    g.add(mesh(new THREE.SphereGeometry(0.15, 9, 6, 0, Math.PI * 2, 0, Math.PI * 0.55), HAIR, -0.015, 1.585, 0));
+    // His face, pasted on the front a little oversized, paper-cutout style
+    const face = mesh(new THREE.PlaneGeometry(0.36, 0.36 * 403 / 300), FACE, 0.145, 1.6, 0);
+    face.rotation.y = Math.PI / 2; // plane faces +Z; turn it to face +X
+    g.add(face);
     return g;
   };
 

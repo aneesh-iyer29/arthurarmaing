@@ -28,6 +28,8 @@ const localThree = (() => {
       route.fulfill({ path: path.join(localThree, rel), contentType: "text/javascript" });
     });
   }
+  const face = fs.readFileSync(path.join(__dirname, "..", "img", "arthur-face.png")).toString("base64");
+  await page.addInitScript((url) => { window.FACE_URL = url; }, `data:image/png;base64,${face}`);
   await page.goto("file://" + path.join(__dirname, "build-models.html"));
   const models = await page.evaluate(() => window.models);
   const out = path.join(__dirname, "..", "models");
