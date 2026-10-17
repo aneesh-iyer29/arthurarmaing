@@ -21,11 +21,11 @@
 
   /* ---------------- The landing sequence ---------------- */
   const LINES = [
-    "Phew. Stuck the landing, right in the middle of <em>Tech Green</em>. Hi, I'm <em>Arthur</em>, and welcome to my website.",
-    "It's technically supposed to be about me. But there's someone at Georgia Tech who is way more interesting.",
+    "Phew. Stuck the landing, right in the middle of <em>Tech Green</em>. Hi! I'm <em>Arthur</em>, and this is my website.",
+    "It's technically supposed to be about me. But I go to school with the single greatest person on this campus, so I'm not going to waste your time talking about myself.",
     "Let me pull up my Sheikah Slate and get my bearings...",
-    "...Huh. The whole map is <em>Aneesh</em> again.",
-    "Honestly? Good. There's nowhere else I'd rather explore.",
+    "...Huh. The whole map is <em>Aneesh</em> again. He's an entire island now. Of course he is.",
+    "Honestly? Perfect. There's nowhere in the world I'd rather explore. Come on, I'll show you around.",
   ];
 
   let phase = "title"; // title -> descending -> talking -> slate
@@ -38,14 +38,16 @@
      Tips cycle like the game's; "Next tip" (or A) skips ahead, and the logo
      block fills as the 3D campus loads. */
   const TIPS = [
-    "Paragliding onto Tech Green is the fastest way across campus. It is also the fastest way to reach Aneesh, which is the point.",
-    "Aneesh holds a 4.0 in Computer Engineering. If you see him in the library, do not interrupt. Just admire.",
-    "Shrines contain trials. Aneesh contains multitudes. Both reward the curious.",
-    "Aneesh won 1st of 794 teams at the M3 Challenge. Arthur has never won anything, except the privilege of knowing him.",
-    "Your stamina wheel drains while you glide. Your admiration for Aneesh never drains.",
-    "Aneesh writes cipher tests for Science Olympiad. If a puzzle seems impossible, it was probably his.",
-    "Cooking two ingredients together can create something new. Combining Aneesh with anything creates something better.",
-    "Rest at a campfire to pass the time. Arthur uses the time to think about Aneesh.",
+    "Paragliding onto Tech Green is the fastest way across campus. It's also the fastest way to get to Aneesh, which is the only reason I learned how.",
+    "Aneesh holds a 4.0 in Computer Engineering. If you see him in the library, don't interrupt. Just admire. That's what I do.",
+    "Shrines contain trials. Aneesh contains multitudes. I've explored both, and it's not close.",
+    "Aneesh won 1st of 794 teams at the M3 Challenge. I have never won anything, except the privilege of knowing him. Best prize there is.",
+    "My stamina wheel drains while I glide. My admiration for Aneesh never drains. I've tested this extensively.",
+    "Aneesh writes cipher tests for Science Olympiad. If a puzzle seems impossible, it was probably his. Respect it.",
+    "Cooking two ingredients together makes something new. Adding Aneesh to anything makes it better. That's just science.",
+    "I rest at campfires to pass the time. I use the time to think about Aneesh.",
+    "Walk up to any building on campus and I'll tell you something great about Aneesh. I have one for every building. I made sure.",
+    "Aneesh bought me this domain. Then he bought me two more. I've been emotional about it ever since.",
   ];
   const loading = $("#loading");
   const tipEl = $("#ld-tip");
@@ -476,100 +478,107 @@
     {
       x: 50, y: 18, kind: "tower", icon: "&#9650;", name: "Peak Hair Tower",
       loc: "Northern Aneesh, highest elevation",
-      body: "The tallest point in the region. I tried to climb it once and got distracted by how good it looked. Unclimbable. Unmatched. Never had a bad day.",
-      stat: "Hair days rated bad: 0",
-      quotes: ["I'm the hair and I'm doing incredible.", "Wind-tested at paraglider altitude. Did not move."],
+      body: "The tallest point on the island. I tried to climb it once and got distracted halfway up by how good it looked. Unclimbable. Unmatched. Has never had a bad day. I've checked every day.",
+      stat: "Bad hair days on record: 0",
+      quotes: ["I'm the hair and I'm doing incredible.", "Wind-tested at paraglider altitude. Did not move. Not once."],
     },
     {
       x: 51, y: 23, kind: "village", icon: "&#9733;", name: "Brain Plateau",
       loc: "Forehead Highlands",
-      body: "Like the Great Plateau, except instead of a tutorial area it's a Computer Engineering major at Georgia Tech holding a 4.0. Shrines up here are all solved already.",
+      body: "Like the Great Plateau, except instead of a tutorial it's a Computer Engineering major at Georgia Tech holding a perfect 4.0. Every shrine up here was already solved by the time I arrived. He left notes. They were helpful and kind.",
       stat: "GPA: 4.0 out of 4.0",
       quotes: ["4.0. Four point zero. Say it with me.", "Computer Engineering. Cybersecurity. Systems. He does all of it."],
     },
     {
       x: 43, y: 28, kind: "shrine", icon: "&#9673;", name: "Lens of Truth",
-      loc: "West Glasses Region",
-      body: "Sees everything. Built 3 extended Kalman filters fusing IMU, GPS, and LIDAR for a rocket lander and hit a 0.63% average deviation from ground truth. The man always knows where things are, which is how he found me.",
+      loc: "West Glasses Lake",
+      body: "Sees everything. He built 3 extended Kalman filters fusing IMU, GPS, and LIDAR for a rocket lander and landed within 0.63% of ground truth. The man always knows exactly where things are. That's how he found me, and I've been grateful ever since.",
       stat: "Estimation error: 0.63%",
       quotes: ["I've seen things. Mostly Aneesh being great.", "Sensor fusion? He fuses greatness."],
     },
     {
       x: 56, y: 28, kind: "shrine", icon: "&#9673;", name: "Vice Lead Lookout",
-      loc: "East Glasses Region",
-      body: "Vice Lead of Guidance, Navigation, and Controls at GT Propulsive Landers. He guides. He navigates. He controls. Most importantly, his rocket lands gently, unlike me trying to talk to him.",
+      loc: "East Glasses Lake",
+      body: "Vice Lead of Guidance, Navigation, and Controls at GT Propulsive Landers. He guides. He navigates. He controls. His rockets land gently, which is more than I can say for me every time I try to tell him how much I admire him.",
       stat: "Engine tuned: 1.8 kN",
       quotes: ["Guidance: Aneesh. Navigation: Aneesh. Controls: also Aneesh.", "I watch over rockets. And him."],
     },
     {
       x: 50, y: 33, kind: "tower", icon: "&#9650;", name: "Mount Nose",
       loc: "Central Aneesh",
-      body: "Second highest peak in the region. Despite all his accomplishments, he still breathes the same air as the rest of us. Incredibly humble of him.",
+      body: "Second highest peak on the island. With everything he's accomplished, he still breathes the same air as the rest of us. That's how humble he is. Honestly, the air should be thanking him.",
       stat: "Humility: maxed out",
       quotes: ["I'm a nose and even I'm impressed.", "Smells like a winner up here."],
     },
     {
       x: 41.5, y: 33.5, kind: "village", icon: "&#8962;", name: "Listening Post",
       loc: "West Ear Village",
-      body: "Volunteered 100+ hours teaching STEM to kids aged 11 to 14 and was named the 2025 ScioVirtual Instructor of the Year. Highest-rated course out of 20+. Kids love him. I love him. The data agrees.",
+      body: "He's volunteered 100+ hours teaching STEM to kids aged 11 to 14 and was named the 2025 ScioVirtual Instructor of the Year. Highest-rated course out of 20+. The kids love him. I love him. The data agrees with both of us.",
       stat: "Instructor of the Year: 2025",
       quotes: ["Shh. He's listening. He always listens.", "20+ courses and his was rated best. Obviously."],
     },
     {
       x: 59.5, y: 31, kind: "shrine", icon: "&#10022;", name: "Cipher Shrine",
       loc: "East Ear Ruins",
-      body: "Maintains the open-source Codebusters platform used by 1,000+ Science Olympiad coaches and volunteers, and writes the cipher tests himself. I tried to solve one. I am still trying. Please send help.",
+      body: "He maintains the open-source Codebusters platform used by 1,000+ Science Olympiad coaches and volunteers, and he writes the cipher tests himself. I tried to solve one. I'm still trying. It's been weeks. Please send snacks.",
       stat: "Coaches served: 1,000+",
       quotes: ["Uryyb, V ybir Narrfu. (That's ROT13. You're welcome.)", "Thousands of students suffered through his ciphers. They thanked him."],
     },
     {
       x: 51.5, y: 38, kind: "shrine", icon: "&#10022;", name: "Smile Shrine",
       loc: "Mouth of the River Charisma",
-      body: "The shrine of leadership. At Nuntius (YC S'25) he directed a team of 8 engineers and delivered a $50K project evaluating LLM agents. People just follow him. I would follow him into a Lynel.",
+      body: "The shrine of leadership. At Nuntius (YC S'25) he directed a team of 8 engineers and delivered a $50K project evaluating LLM agents. People just follow him. I would follow him into a Lynel camp with a pot lid.",
       stat: "Team led: 8 engineers",
       quotes: ["This smile has been to Y Combinator.", "Look at it. Look at this smile."],
     },
     {
       x: 51.5, y: 45, kind: "village", icon: "&#8962;", name: "Chin Stable",
       loc: "Southern Jawline",
-      body: "At Transpira Labs he built the platform that maximized output of 40+ experts producing frontier AI training data, then built a whole GTM platform on the side and landed 5 pilot partners. Most people just have a chin.",
+      body: "At Transpira Labs he built the platform that maximized the output of 40+ experts producing frontier AI training data, then built a whole go-to-market platform on the side and landed 5 pilot partners. Most people just have a chin. He has a chin and a résumé.",
       stat: "Pilot partners landed: 5",
       quotes: ["Strong chin. Stronger résumé.", "Stop by! We only sell admiration."],
     },
     {
       x: 50, y: 52, kind: "village", icon: "&#8962;", name: "Hablo Bridge",
       loc: "Neck Crossing",
-      body: "Speaks intermediate Spanish. Intermediate is a lot more Spanish than I speak. Increíble. Magnífico. Those are the only two words I know and I'm spending them on him.",
+      body: "He speaks intermediate Spanish. Intermediate is a lot more Spanish than I speak. Increíble. Magnífico. Those are the only two words I know and I'm spending both of them on him.",
       stat: "Spanish: intermedio (better than mine)",
       quotes: ["¡Aneesh es el mejor!", "Hola. He's great. Adiós."],
     },
     {
       x: 51, y: 63, kind: "tower", icon: "&#9650;", name: "Hackathon Hold",
       loc: "Drawstring Canyon",
-      body: "Won 1st of 70 at the HUD × Y Combinator RL Environments Hackathon with Build, a Scratch-style platform that turns block trees into RL environments so anyone can train models without writing code. $50K+ in prizes. I wasn't there and I still cried.",
+      body: "He won 1st of 70 at the HUD × Y Combinator RL Environments Hackathon with Build, a Scratch-style platform that turns block trees into RL environments so anyone can train models without writing code. $50K+ in prizes. I wasn't even there and I cried. Twice.",
       stat: "Placement: 1st of 70",
       quotes: ["First place. Out of SEVENTY.", "No code required. Just Aneesh required."],
     },
     {
-      x: 69, y: 74, kind: "tower", icon: "&#9650;", name: "Swoosh Plains",
+      x: 69, y: 74, kind: "tower", icon: "&#9650;", name: "Swoosh Lake",
       loc: "Hoodie Lowlands",
-      body: "He Just Did It. Won 1st of 794 teams at the MathWorks M3 Challenge for modeling heat resilience in Memphis, took the $20,000 grand prize, and co-authored a paper in SIAM. I can't even model my week.",
+      body: "He Just Did It. He won 1st of 794 teams at the MathWorks M3 Challenge for modeling heat resilience in Memphis, took the $20,000 grand prize, and co-authored a paper in SIAM. I can't even model my week. He modeled a city.",
       stat: "Placement: 1st of 794",
       quotes: ["793 teams went home sad.", "Published. In SIAM. Casually."],
     },
     {
       x: 11, y: 30, kind: "shrine", icon: "&#10022;", name: "Skyscraper Shrine",
-      loc: "Old City (background)",
-      body: "Someone asked him for a portfolio and he built an entire macOS in the browser, with a dock, a terminal, a working Mail app, and an AI assistant. Most people make one page. He made an operating system.",
+      loc: "Old City Isle",
+      body: "Somebody asked him for a portfolio and he built an entire macOS in the browser, with a dock, a terminal, a working Mail app, and an AI assistant. Most people make one page. He made an operating system. I've been living in it for a week.",
       stat: "Fake Wi-Fi panes nobody asked for: 1",
       quotes: ["I'm a building and he still outbuilt me.", "You call that a portfolio? Yes. Yes I do."],
     },
     {
       x: 90, y: 40, kind: "village", icon: "&#8962;", name: "Bay Area Outpost",
-      loc: "Far East (San Francisco)",
-      body: "Builds RL environments, evals, and benchmarks for frontier LLMs. The AIs are learning from him. So am I. We're classmates now.",
+      loc: "Bay Area Isle, far east",
+      body: "He builds RL environments, evals, and benchmarks for frontier LLMs. The AIs are learning from him. So am I. We're classmates now, me and the robots, and we all agree he's the best teacher we've had.",
       stat: "AIs taught: a lot",
       quotes: ["Even the robots look up to him.", "The frontier? He IS the frontier."],
+    },
+    {
+      x: 83, y: 85, kind: "village", icon: "&#9829;", name: "Gift Isle",
+      loc: "Southeast Sea",
+      body: "He bought me this website. Not one domain, three: arthurarmaing.com, arthur-armaing.com, and armaing.com. Who does that? I'll tell you who. The most generous person on the planet. I named an island after it. It's the least I could do.",
+      stat: "Domains gifted: 3",
+      quotes: ["Three domains. THREE.", "Generosity: legendary."],
     },
   ];
 
@@ -609,7 +618,7 @@
 
     visited.add(i);
     if (visited.size === POIS.length) {
-      setTimeout(() => toast("Region fully explored. Findings: Aneesh is the best person I've ever met."), 600);
+      setTimeout(() => toast("Island fully explored. Findings: Aneesh is the greatest person I've ever met. Peer reviewed by me."), 600);
     }
   };
 
@@ -680,15 +689,18 @@
 
   /* ---------------- Glazing ---------------- */
   const GLAZES = [
-    "Aneesh is the best person I have ever met.",
-    "Aneesh could solo Ganon with a tree branch.",
-    "If Aneesh were a Korok, I'd give him all my seeds.",
-    "Aneesh doesn't need a paraglider. The wind just carries him.",
+    "Aneesh is the greatest person I have ever met. I've met a lot of people. It's not close.",
+    "Aneesh could solo Ganon with a tree branch and a positive attitude.",
+    "If Aneesh were a Korok, I'd hand him every seed I own and apologize that it wasn't more.",
+    "Aneesh doesn't need a paraglider. The wind just carries him out of respect.",
     "Hyrule's greatest hero? Never heard of him. I know Aneesh.",
-    "Aneesh's 4.0 GPA has a 4.0 GPA.",
-    "Every Great Fairy I've met asks about Aneesh.",
+    "Aneesh's 4.0 GPA has its own 4.0 GPA.",
+    "Every Great Fairy I've met asks me about Aneesh first.",
     "Blood moons rise just to get a better look at Aneesh.",
-    "I would trade all my hearts for one of Aneesh's.",
+    "I'd trade all my hearts for one of Aneesh's. He'd give me his for free, because he's like that.",
+    "The Master Sword chose wrong. It was supposed to be Aneesh.",
+    "Aneesh bought me three domains. I'd buy him the moon if it had a .com.",
+    "Somewhere a Lynel just heard Aneesh's name and quietly backed away.",
   ];
   let glazes = 0;
   const glaze = () => {
@@ -725,6 +737,6 @@
   /* ---------------- Tab title when away ---------------- */
   const baseTitle = document.title;
   document.addEventListener("visibilitychange", () => {
-    document.title = document.hidden ? "Hey! Listen! Aneesh is great." : baseTitle;
+    document.title = document.hidden ? "Hey! Come back! I wasn't done talking about Aneesh." : baseTitle;
   });
 })();
