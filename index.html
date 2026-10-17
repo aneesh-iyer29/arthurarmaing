@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Arthur R. Mank</title>
+  <meta name="description" content="Arthur R. Mank paraglides in, opens his Sheikah Slate, and finds the greatest map ever charted.">
+  <meta name="theme-color" content="#7ec3e6">
+  <meta property="og:title" content="Arthur R. Mank">
+  <meta property="og:description" content="I opened my map and it was just Aneesh. Again.">
+  <meta property="og:image" content="img/aneesh-map.jpg">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 6 58 52H6z' fill='%23e8c35a' stroke='%23704f12' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Marcellus+SC&family=Nunito+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="preload" as="image" href="img/aneesh-map.jpg">
+</head>
+<body>
+
+  <!-- ============ The overworld: sky, descent, landing ============ -->
+  <main id="world" aria-label="Arthur paragliding down to the ground">
+    <div class="sky"></div>
+    <div class="sun"></div>
+
+    <div class="clouds clouds-far">
+      <span class="cloud c1"></span><span class="cloud c2"></span><span class="cloud c3"></span><span class="cloud c4"></span>
+    </div>
+
+    <svg class="mountains" viewBox="0 0 1600 400" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 400 L0 250 L120 170 L230 230 L360 110 L470 210 L600 140 L700 200 L820 60 L940 190 L1060 130 L1180 220 L1300 120 L1420 200 L1520 150 L1600 190 L1600 400Z" fill="#8fb3c9"/>
+      <path d="M770 105 L820 60 L870 105 L845 96 L820 112 L795 96Z" fill="#eef6fb"/>
+      <path d="M1265 150 L1300 120 L1335 150 L1300 140Z" fill="#eef6fb"/>
+      <path d="M0 400 L0 300 L160 240 L300 290 L450 220 L620 280 L760 230 L900 290 L1080 220 L1230 280 L1400 230 L1600 280 L1600 400Z" fill="#6f9a8a"/>
+    </svg>
+
+    <!-- A tower that is suspiciously shaped like someone who is great -->
+    <svg class="tower" viewBox="0 0 60 200" aria-hidden="true">
+      <rect x="24" y="40" width="12" height="160" fill="#4b4a52"/>
+      <path d="M8 40 L52 40 L44 20 L16 20Z" fill="#3b3a42"/>
+      <circle cx="30" cy="14" r="9" fill="#ff9a3c" class="tower-glow"/>
+    </svg>
+
+    <div class="clouds clouds-near">
+      <span class="cloud c5"></span><span class="cloud c6"></span><span class="cloud c7"></span>
+    </div>
+
+    <div class="ground">
+      <svg viewBox="0 0 1600 420" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 80 C300 20 520 70 800 50 C1100 30 1300 90 1600 40 L1600 420 L0 420Z" fill="#7fb24a"/>
+        <path d="M0 140 C380 90 640 150 900 120 C1180 90 1380 150 1600 110 L1600 420 L0 420Z" fill="#6aa03c"/>
+        <path d="M0 260 C420 210 820 280 1600 230 L1600 420 L0 420Z" fill="#5b8f33"/>
+        <g fill="#3f6e2a">
+          <circle cx="140" cy="70" r="26"/><circle cx="175" cy="60" r="30"/><circle cx="210" cy="74" r="22"/>
+          <circle cx="1350" cy="66" r="24"/><circle cx="1390" cy="54" r="32"/><circle cx="1430" cy="70" r="22"/>
+        </g>
+        <g fill="#3f6e2a"><rect x="171" y="80" width="8" height="30"/><rect x="1386" y="78" width="8" height="30"/></g>
+      </svg>
+      <div class="grass-tufts" aria-hidden="true"></div>
+    </div>
+
+    <div class="wind" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+
+    <!-- Arthur himself (original drawing, any resemblance to a famous elf is a coincidence) -->
+    <div id="hero" aria-hidden="true">
+      <svg viewBox="0 0 200 240">
+        <g class="glider">
+          <path d="M10 70 Q100 -10 190 70 Q100 40 10 70Z" fill="#c9a46a" stroke="#6b4a22" stroke-width="3"/>
+          <path d="M40 52 Q100 10 160 52" fill="none" stroke="#a0322b" stroke-width="6"/>
+          <path d="M80 34 L100 22 L120 34 L100 44Z" fill="#a0322b"/>
+          <line x1="22" y1="66" x2="84" y2="112" stroke="#5a3d1c" stroke-width="2"/>
+          <line x1="178" y1="66" x2="116" y2="112" stroke="#5a3d1c" stroke-width="2"/>
+          <line x1="84" y1="112" x2="116" y2="112" stroke="#5a3d1c" stroke-width="5" stroke-linecap="round"/>
+        </g>
+        <g class="body">
+          <g class="arm-up">
+            <path d="M88 132 L86 112" stroke="#f1c7a1" stroke-width="7" stroke-linecap="round"/>
+            <path d="M112 132 L114 112" stroke="#f1c7a1" stroke-width="7" stroke-linecap="round"/>
+          </g>
+          <circle cx="100" cy="118" r="15" fill="#f1c7a1"/>
+          <path d="M84 116 Q86 98 100 98 Q116 98 117 116 Q112 108 100 108 Q90 108 84 116Z" fill="#e3b54a"/>
+          <path d="M114 112 L126 106 L117 118Z" fill="#f1c7a1"/>
+          <circle cx="94" cy="119" r="1.8" fill="#223"/><circle cx="106" cy="119" r="1.8" fill="#223"/>
+          <path d="M84 134 L116 134 L120 178 L80 178Z" fill="#3a78c2"/>
+          <rect x="82" y="160" width="36" height="5" fill="#6b4a22"/>
+          <path d="M86 178 L96 178 L95 206 L86 206Z" fill="#6b5236"/>
+          <path d="M104 178 L114 178 L114 206 L105 206Z" fill="#6b5236"/>
+          <rect x="83" y="204" width="14" height="7" rx="2" fill="#3b2a18"/>
+          <rect x="103" y="204" width="14" height="7" rx="2" fill="#3b2a18"/>
+          <g class="arm-down">
+            <path d="M84 138 L76 162" stroke="#3a78c2" stroke-width="8" stroke-linecap="round"/>
+            <path d="M116 138 L124 160 L112 166" stroke="#3a78c2" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect class="mini-slate" x="98" y="158" width="20" height="14" rx="3" fill="#2b3036" stroke="#4fe3ff" stroke-width="2"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+
+    <div id="title" class="title-card">
+      <p class="eyebrow">The Legend of Arthur</p>
+      <h1>Breath of the <span>Aneesh</span></h1>
+      <p class="press">Tap or press any key to begin</p>
+    </div>
+
+    <div id="dialog" class="textbox" role="dialog" aria-live="polite" hidden>
+      <p class="speaker">Arthur</p>
+      <p class="line" id="dialog-line"></p>
+      <span class="next" aria-hidden="true">&#9660;</span>
+    </div>
+
+    <button id="skip" class="skip" type="button">Skip &#9654;&#9654;</button>
+  </main>
+
+  <!-- ============ The Sheikah Slate ============ -->
+  <section id="slate" class="slate" aria-label="Arthur's Sheikah Slate" hidden>
+    <div class="slate-frame">
+      <header class="slate-top">
+        <div class="slate-eye" aria-hidden="true">
+          <svg viewBox="0 0 64 40"><path d="M2 20 Q32 -6 62 20 Q32 46 2 20Z" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="32" cy="20" r="8" fill="none" stroke="currentColor" stroke-width="3"/><path d="M32 30 L32 40" stroke="currentColor" stroke-width="3"/></svg>
+        </div>
+        <nav class="tabs" role="tablist">
+          <button role="tab" class="tab" data-tab="map" aria-selected="true">Map</button>
+          <button role="tab" class="tab" data-tab="compendium" aria-selected="false">Compendium</button>
+          <button role="tab" class="tab" data-tab="log" aria-selected="false">Adventure Log</button>
+          <button role="tab" class="tab" data-tab="album" aria-selected="false">Album</button>
+        </nav>
+        <p class="region">Region: <strong>Aneesh</strong> (all of it)</p>
+      </header>
+
+      <!-- Map -->
+      <div class="panel panel-map" data-panel="map">
+        <div class="map-wrap">
+          <div class="map" id="map">
+            <img src="img/aneesh-map.jpg" alt="The entire map of the world, which is Aneesh's face" draggable="false">
+            <div class="map-tint" aria-hidden="true"></div>
+            <svg class="map-contours" aria-hidden="true">
+              <defs>
+                <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+                  <path d="M60 0H0V60" fill="none" stroke="rgba(230,240,220,.18)" stroke-width="1"/>
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#grid)"/>
+            </svg>
+            <div class="fog" aria-hidden="true"></div>
+            <div id="pins"></div>
+            <div class="you-are-here" style="left:14%;top:88%" title="Arthur">
+              <span class="arrow"></span><span class="label">Arthur (lost, staring)</span>
+            </div>
+          </div>
+          <p class="map-name"><span>Greater Aneesh</span><em>The only region worth exploring</em></p>
+        </div>
+        <aside class="info" id="info" aria-live="polite">
+          <p class="info-kicker">Point of interest</p>
+          <h2 id="info-title">Pick a marker</h2>
+          <p class="info-loc" id="info-loc">Tap any icon on the map.</p>
+          <p id="info-body">Every landmark in this region is a skill, a win, or a reason Aneesh is the best person I have ever met. That is all of them. I checked.</p>
+          <div class="info-stat" id="info-stat"></div>
+        </aside>
+      </div>
+
+      <!-- Compendium -->
+      <div class="panel panel-compendium" data-panel="compendium" hidden>
+        <article class="entry">
+          <div class="entry-photo"><img src="img/aneesh-map.jpg" alt="Aneesh Iyer, compendium photo"></div>
+          <div class="entry-text">
+            <p class="entry-no">No. 001 &middot; Legendary</p>
+            <h2>Aneesh Iyer</h2>
+            <p>An extremely rare creature found mostly around Georgia Tech and San Francisco. Studies Computer Engineering and keeps a 4.0 while doing it. Known to win competitions on contact. If you see one, stop what you're doing and tell him he's great. I do this every day.</p>
+            <dl class="entry-meta">
+              <div><dt>Common locations</dt><dd>Atlanta, San Francisco, the top of every leaderboard</dd></div>
+              <div><dt>Recoverable materials</dt><dd>Wisdom, Courage, a 4.0 GPA, a $20,000 check, $50K+ in hackathon prizes</dd></div>
+              <div><dt>Weakness</dt><dd>Underestimates how long tasks take. That's it. Nothing else.</dd></div>
+            </dl>
+          </div>
+        </article>
+        <article class="entry entry-small">
+          <div class="entry-photo entry-photo-empty" aria-label="No photo of Arthur"><span>?</span></div>
+          <div class="entry-text">
+            <p class="entry-no">No. 002 &middot; Common</p>
+            <h2>Arthur R. Mank</h2>
+            <p>That's me. There was no room left on the Slate for a photo after all the Aneesh. I'm fine with this. It's the right call.</p>
+          </div>
+        </article>
+      </div>
+
+      <!-- Adventure Log -->
+      <div class="panel panel-log" data-panel="log" hidden>
+        <h2 class="log-head">Main Quests</h2>
+        <ul class="quests">
+          <li class="quest active"><strong>Tell Everyone About Aneesh</strong><span>Inform every living person that Aneesh Iyer is the best person I have ever met. Progress: still going. Will never finish. Do not want to.</span></li>
+          <li class="quest done"><strong>Meet Aneesh</strong><span>Completed. Best day of my life. The calendar has since been reorganized around it.</span></li>
+          <li class="quest done"><strong>Buy This Domain</strong><span>Completed by Aneesh, as a gift, because he is generous. Another reason, honestly.</span></li>
+        </ul>
+        <h2 class="log-head">Side Quests</h2>
+        <ul class="quests">
+          <li class="quest"><strong>The 4.0 Trial</strong><span>Try to match Aneesh's GPA. Abandoned. Some trials are meant for heroes.</span></li>
+          <li class="quest"><strong>A Portfolio, Not An Operating System</strong><span>Aneesh was asked for a portfolio and built an entire macOS in the browser instead. Investigate how. Report back in awe.</span></li>
+          <li class="quest"><strong>Decode the Cipher</strong><span>Solve one of the Codebusters ciphers Aneesh writes for Science Olympiad. Hundreds of high schoolers have tried. Pray for me.</span></li>
+          <li class="quest"><strong>Find Someone Better</strong><span>Searched all of Hyrule, Atlanta, and the Bay Area. Quest failed. Nobody exists.</span></li>
+        </ul>
+      </div>
+
+      <!-- Album -->
+      <div class="panel panel-album" data-panel="album" hidden>
+        <figure class="snap">
+          <img src="img/hackathon.jpg" alt="Aneesh with his team holding prizes at the HUD hackathon" loading="lazy">
+          <figcaption><strong>The Day He Beat 69 Teams</strong>1st of 70 at the HUD &times; Y Combinator RL Environments Hackathon. I wasn't there but I felt it in my chest.</figcaption>
+        </figure>
+        <figure class="snap">
+          <img src="img/m3-finals.jpg" alt="Aneesh smiling with his team at the M3 Challenge finals" loading="lazy">
+          <figcaption><strong>The Day He Beat 793 Teams</strong>MathWorks M3 Challenge champion, $20,000 grand prize, plus a published paper. Look at that smile. He knew.</figcaption>
+        </figure>
+        <figure class="snap">
+          <img src="img/aneesh-map.jpg" alt="Portrait of Aneesh" loading="lazy">
+          <figcaption><strong>Self-Portrait of Arthur</strong>Okay this one is also Aneesh. I don't have any photos of myself on here. Why would I.</figcaption>
+        </figure>
+      </div>
+
+      <footer class="slate-bottom">
+        <span><kbd>A</kbd> Select</span>
+        <span><kbd>B</kbd> Back</span>
+        <span><kbd>X</kbd> <button type="button" id="glaze" class="linkish">Glaze Aneesh</button></span>
+        <span class="glaze-count" id="glaze-count">Glazes: 0</span>
+        <button type="button" id="replay" class="linkish replay">Replay landing</button>
+      </footer>
+    </div>
+    <p class="fine">&copy; 2026 Arthur R. Mank. Domain gifted by a friend, who is, coincidentally, the best person I've ever met. Fan parody, not affiliated with Nintendo. <a href="https://www.aneeshiyer.com/" target="_blank" rel="noopener">Visit the legend himself</a>.</p>
+  </section>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
