@@ -82,10 +82,10 @@
     tipTimer = setInterval(nextTip, 6000);
   });
 
-  // Progress creeps toward 90% on its own and finishes when loading does.
+  // Progress creeps a little on its own; the 3D campus reports the rest.
   let progress = 0;
   const creep = setInterval(() => {
-    progress += (0.9 - progress) * 0.06;
+    if (progress < 0.35) progress += (0.35 - progress) * 0.04;
     fill.style.width = `${(progress * 100).toFixed(1)}%`;
   }, 120);
   const loadingMin = new Promise((r) => setTimeout(r, reduced ? 600 : 3200));
@@ -96,7 +96,9 @@
   const press = $("#press");
   let use3D = false;
   press.textContent = "Loading Georgia Tech...";
-  const ready3D = (flight ? flight.init($("#globe")) : Promise.resolve(false)).then((ok) => {
+  // Real loading progress from the 3D campus, with the creep as a floor.
+  const loaded3D = (k) => { progress = Math.max(progress, Math.min(0.97, 0.15 + 0.85 * k)); };
+  const ready3D = (flight ? flight.init($("#globe"), loaded3D) : Promise.resolve(false)).then((ok) => {
     use3D = ok;
     world.classList.toggle("is-3d", ok);
     $("#explore").hidden = !ok;
@@ -503,7 +505,8 @@
   };
   let busy = false, inShrine = null, trialStop = () => {}, talk = [], talkAt = 0;
 
-  // The loading screen again, briefly, with a tip about where I'm headed.
+  // The loading screen again, with a tip about where I'm headed. It stays up
+  // until the destination has streamed in (or a few seconds pass).
   const warpLoading = async (p) => {
     ldTitle.textContent = p.name;
     tipEl.classList.remove("swap");
@@ -515,9 +518,12 @@
     loading.hidden = false;
     WarpFX.clear();
     void fill.offsetWidth;
-    fill.style.transition = "width 2.4s ease";
+    fill.style.transition = "width 2.6s ease-out";
+    fill.style.width = "85%";
+    await Promise.all([wait(reduced ? 1200 : 2900), use3D ? flight.whenLoaded(6000) : null]);
+    fill.style.transition = "width .3s ease";
     fill.style.width = "100%";
-    await wait(reduced ? 1200 : 2900);
+    await wait(300);
     WarpFX.cover(true);
     loading.hidden = true;
     loading.classList.remove("quick");
@@ -545,11 +551,14 @@
     await WarpFX.out({ origin, dark: true });
     slate.hidden = true;
     document.body.classList.remove("slate-open");
-    await warpLoading(p);
     if (use3D) {
+      // Move there now, so the shrine streams in behind the loading screen.
       flight.warpTo(p.campus);
       explore({ intro: false });
       flight.showHero(false);
+    }
+    await warpLoading(p);
+    if (use3D) {
       setTimeout(() => flight.showHero(true), reduced ? 0 : 650);
       await WarpFX.in({ origin: heroSpot(), dark: true });
       reveal(p.shrine, `There it is, right by ${p.campus.near}. ${p.teaser} Let's go in.`);

@@ -32,7 +32,7 @@ window.Flight3D = (() => {
   // Noon in spring, so the sun is high and the sky is blue.
   const START_TIME = "2026-04-15T16:30:00Z";
 
-  let C, viewer, scene, ground = GROUND_FALLBACK, photoreal = false;
+  let C, viewer, scene, tiles = null, ground = GROUND_FALLBACK, photoreal = false;
   // Which map source ended up in use and why, for ?debug and the console.
   const status = { source: "none", notes: [], tilesLoaded: 0, tilesFailed: 0 };
   const note = (msg) => { status.notes.push(msg); console.info(`[Arthur 3D] ${msg}`); showDebug(); };
@@ -163,7 +163,7 @@ window.Flight3D = (() => {
   let currentFrame = { h: 0, pitch: -0.3, range: 900, lift: 0 };
 
   const tick = () => {
-    if (!viewer) return;
+    if (!viewer || mode === "warm") return;
     if (mode === "explore") { walk(); return; }
     const tg = at(TECH_GREEN.lat, TECH_GREEN.lon, 0);
 
@@ -445,7 +445,53 @@ window.Flight3D = (() => {
     if (stander) stander.show = !heroHidden;
   };
 
-  const init = async (container) => {
+  /* Wait until everything in the current view has streamed in, or give up
+     after maxMs. A couple of frames go by first so the new view registers. */
+  const whenLoaded = (maxMs = 8000) => new Promise((done) => {
+    if (!tiles || !photoreal) { done(); return; }
+    const start = performance.now();
+    const check = () => {
+      const t = performance.now() - start;
+      if ((t > 250 && tiles.tilesLoaded) || t > maxMs) done();
+      else setTimeout(check, 120);
+    };
+    setTimeout(check, 120);
+  });
+
+  /* Behind the loading screen, fly the camera along the whole descent and
+     down onto Tech Green so those tiles are already cached when the descent
+     starts. Ends on Tech Green, the freshest thing in the cache. */
+  const warmUp = async (onStep, budget = 10000) => {
+    const views = [];
+    // Every other waypoint is plenty; from up high their views overlap.
+    for (const i of [0, 2, 4, 6, 7]) {
+      const p = at(PATH[i][0], PATH[i][1], PATH[i][2]);
+      const next = at(PATH[i + 1][0], PATH[i + 1][1], PATH[i + 1][2]);
+      const k = i / (PATH.length - 2);
+      views.push({ target: lift(p, 1.8), h: headingBetween(p, next), pitch: -0.5 + 0.3 * k, range: 60 - 45 * k });
+    }
+    // The landing, then two sides of the title screen's slow orbit.
+    const tg = at(TECH_GREEN.lat, TECH_GREEN.lon, 0);
+    const toGreen = headingBetween(at(PATH[5][0], PATH[5][1], 0), tg);
+    views.push({ target: lift(tg, 1.3), h: toGreen + Math.PI - 0.6, pitch: -0.12, range: 5 });
+    views.push({ target: lift(tg, 1.1), h: orbit + Math.PI, pitch: -0.14, range: 9 });
+    views.push({ target: lift(tg, 1.1), h: orbit, pitch: -0.14, range: 9 });
+    mode = "warm";
+    const start = performance.now(), end = start + budget, before = status.tilesLoaded;
+    let i = 0;
+    for (; i < views.length && performance.now() < end; i += 1) {
+      const v = views[i];
+      look(v.target, v.h, v.pitch, v.range);
+      await whenLoaded(Math.min(2000, end - performance.now()));
+      onStep((i + 1) / views.length);
+    }
+    note(`warm-up: ${i}/${views.length} views, ${status.tilesLoaded - before} tiles, ${((performance.now() - start) / 1000).toFixed(1)}s`);
+    mode = "idle";
+  };
+
+  let onProgress = () => {};
+  const init = async (container, progress) => {
+    if (progress) onProgress = progress;
     if (!hasWebGL()) return false;
     try {
       window.CESIUM_BASE_URL = CESIUM;
@@ -488,7 +534,13 @@ window.Flight3D = (() => {
           status.tilesFailed += 1;
           if (status.tilesFailed <= 3) note(`3D tile failed: ${e && e.message ? e.message : "unknown"}`);
         });
+        // Phones get slightly coarser tiles so there's less to download;
+        // bigger machines keep more of campus cached once it's loaded.
+        const small = matchMedia("(hover: none), (pointer: coarse)").matches;
+        tileset.maximumScreenSpaceError = small ? 24 : 16;
+        if (!small && (navigator.deviceMemory || 8) >= 8) tileset.cacheBytes = 1024 * 1024 * 1024;
         scene.primitives.add(tileset);
+        tiles = tileset;
         // Hold the loading screen until campus has actually streamed in.
         await Promise.race([
           new Promise((r) => tileset.initialTilesLoaded.addEventListener(r)),
@@ -511,8 +563,11 @@ window.Flight3D = (() => {
       if (photoreal) {
         sampleGround();
         await groundReady;
+        onProgress(0.4);
+        await warmUp((k) => onProgress(0.4 + 0.6 * k));
       }
       idle();
+      onProgress(1);
       return true;
     } catch (err) {
       console.warn("3D descent unavailable, using the 2D one.", err);
@@ -600,7 +655,7 @@ window.Flight3D = (() => {
   return {
     init, start, lookAtSlate, skipToLanding, idle,
     explore, pauseExplore, setMove, turn, zoom,
-    placeShrines, markShrine, warpTo, showHero,
+    placeShrines, markShrine, warpTo, showHero, whenLoaded,
     get exploring() { return mode === "explore"; },
     get ready() { return !!viewer; },
     get photoreal() { return photoreal; },
