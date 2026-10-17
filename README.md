@@ -1,15 +1,16 @@
 # arthurarmaing
 
-The official personal website of Arthur R. Mank, a Georgia Tech student who
-paraglides into the world, pulls out his Sheikah Slate, and finds that the
-entire map is Aneesh Iyer's face.
+The official personal website of Arthur R. Mank, told in his own words. He
+paraglides onto Tech Green, pulls out his Sheikah Slate, and finds that the
+entire map is an island shaped like Aneesh Iyer. Then he walks you around
+campus and has something nice to say about Aneesh at every building.
 
 Plain static site with no build step:
 
 - `index.html`, `style.css`, `script.js`: the page, the landing dialogue, and the Sheikah Slate.
-- `flight3d.js`: the 3D descent onto Tech Green, built on CesiumJS (loaded from jsDelivr).
+- `flight3d.js`: the 3D descent onto Tech Green and walking around campus, built on CesiumJS (loaded from jsDelivr).
 - `models/`: Arthur's low-poly gliding and standing models, with his face. Rebuild them with `node tools/build-models.js`.
-- `img/aneesh-hyrule.jpg`: the Slate map, Aneesh's portrait turned into terrain. Rebuild it with `python3 tools/build-map.py`.
+- `img/aneesh-hyrule.jpg`: the Slate map, Aneesh's silhouette turned into an island (his face is the terrain) in a game-style sea with a few outlying isles. Rebuild it with `python3 tools/build-map.py`. If you move an isle, move its marker in `script.js` too.
 - `api/config.js`: a Vercel function that hands the page the Google Maps key.
 
 ## The loading screen
@@ -29,6 +30,19 @@ What he flies over depends on what's available:
 1. **Google photorealistic 3D tiles** (the Google Earth look) when a Cesium ion token or a Google Maps key is set.
 2. **Satellite imagery** on a flat globe when there's neither, or the key is rejected.
 3. **The original 2D cartoon descent** if the browser has no WebGL or Cesium fails to load.
+
+## Walking around campus
+
+"Walk around campus" in the Slate drops Arthur on Tech Green to explore on foot:
+
+- **Keyboard:** WASD or the arrow keys walk, Shift runs (until the stamina wheel empties), Q and E turn the camera, V switches to first person, M or Escape opens the Slate.
+- **Mouse:** drag to look around, scroll to zoom.
+- **Phone:** the stick in the bottom left walks (push it all the way to run), and dragging anywhere else looks around.
+
+Walking up to a building announces it the way the game announces a new area, with a line from Arthur
+about Aneesh. The buildings and their lines are the `LANDMARKS` list in `script.js` (coordinates from
+OpenStreetMap). With the photoreal 3D tiles his feet follow whatever is under them, rooftops included;
+on the satellite fallback the ground is flat.
 
 ### Free option: Cesium ion
 
