@@ -1,0 +1,184 @@
+<!doctype html>
+<!-- Builds Arthur's two low-poly models (gliding and standing) and exports
+     them as .glb. Run with `node tools/build-models.js`, which opens this page
+     in headless Chromium and writes the files to models/. Units are meters;
+     the character faces +X with +Y up and his feet at the origin. -->
+<meta charset="utf-8">
+<script type="importmap">
+  { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/"
+  } }
+</script>
+<script type="module">
+  import * as THREE from "three";
+  import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
+
+  const mat = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.75, metalness: 0, flatShading: true, ...extra });
+  const SKIN = mat(0xf1c7a1);
+  const HAIR = mat(0xe3b54a);
+  const TUNIC = mat(0x2f6fc0);
+  const TUNIC_DARK = mat(0x24548f);
+  const PANTS = mat(0x5a4532);
+  const BOOT = mat(0x3b2a18);
+  const LEATHER = mat(0x6b4a22);
+  const EYE = mat(0x1d2633);
+  const SLATE = mat(0x2b3036, { roughness: 0.5 });
+  const GLOW = mat(0x4fe3ff, { emissive: 0x4fe3ff, emissiveIntensity: 1.5 });
+  const ORANGE = mat(0xff9a3c, { emissive: 0xff7a1c, emissiveIntensity: 1.2 });
+
+  const mesh = (geo, m, x = 0, y = 0, z = 0) => {
+    const o = new THREE.Mesh(geo, m);
+    o.position.set(x, y, z);
+    return o;
+  };
+
+  /* A limb as a cylinder from point a to point b. */
+  const limb = (a, b, r, m) => {
+    const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b);
+    const len = A.distanceTo(B);
+    const o = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.9, len, 7), m);
+    o.position.copy(A).add(B).multiplyScalar(0.5);
+    o.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), B.clone().sub(A).normalize());
+    return o;
+  };
+
+  /* Shared head, torso, and legs. Arms differ per pose. */
+  const body = () => {
+    const g = new THREE.Group();
+    // Legs and boots
+    g.add(limb([0, 0.12, 0.09], [0, 0.82, 0.1], 0.07, PANTS));
+    g.add(limb([0, 0.12, -0.09], [0, 0.82, -0.1], 0.07, PANTS));
+    g.add(mesh(new THREE.BoxGeometry(0.22, 0.14, 0.11), BOOT, 0.03, 0.07, 0.09));
+    g.add(mesh(new THREE.BoxGeometry(0.22, 0.14, 0.11), BOOT, 0.03, 0.07, -0.09));
+    // Tunic, flared at the hem
+    g.add(mesh(new THREE.CylinderGeometry(0.17, 0.25, 0.62, 8), TUNIC, 0, 1.08, 0));
+    g.add(mesh(new THREE.CylinderGeometry(0.255, 0.27, 0.08, 8), TUNIC_DARK, 0, 0.8, 0));
+    // Belt with a buckle
+    const belt = mesh(new THREE.TorusGeometry(0.205, 0.025, 6, 16), LEATHER, 0, 1.0, 0);
+    belt.rotation.x = Math.PI / 2;
+    g.add(belt);
+    g.add(mesh(new THREE.BoxGeometry(0.03, 0.06, 0.07), ORANGE, 0.205, 1.0, 0));
+    // Neck and head
+    g.add(mesh(new THREE.CylinderGeometry(0.055, 0.06, 0.08, 6), SKIN, 0, 1.42, 0));
+    g.add(mesh(new THREE.IcosahedronGeometry(0.135, 1), SKIN, 0.01, 1.56, 0));
+    // Eyes and nose
+    g.add(mesh(new THREE.SphereGeometry(0.018, 6, 4), EYE, 0.125, 1.575, 0.045));
+    g.add(mesh(new THREE.SphereGeometry(0.018, 6, 4), EYE, 0.125, 1.575, -0.045));
+    g.add(mesh(new THREE.ConeGeometry(0.018, 0.04, 4), SKIN, 0.15, 1.545, 0).rotateZ(-Math.PI / 2));
+    // Pointed ears, angled back
+    const ear = (side) => {
+      const e = mesh(new THREE.ConeGeometry(0.035, 0.14, 4), SKIN, -0.01, 1.58, side * 0.15);
+      e.rotation.set(side * -1.25, 0, 0.45);
+      return e;
+    };
+    g.add(ear(1), ear(-1));
+    // Hair: a cap, swept bangs, and a short ponytail
+    const cap = mesh(new THREE.SphereGeometry(0.15, 9, 6, 0, Math.PI * 2, 0, Math.PI * 0.55), HAIR, -0.015, 1.585, 0);
+    g.add(cap);
+    for (const [z, tilt] of [[0.06, 0.5], [0, 0.2], [-0.06, -0.3]]) {
+      const bang = mesh(new THREE.ConeGeometry(0.045, 0.13, 4), HAIR, 0.11, 1.64, z);
+      bang.rotation.set(tilt, 0, 2.5);
+      g.add(bang);
+    }
+    const tail = mesh(new THREE.ConeGeometry(0.04, 0.18, 5), HAIR, -0.16, 1.5, 0);
+    tail.rotation.z = -0.5;
+    g.add(tail);
+    return g;
+  };
+
+  /* The paraglider: a bowed wing with a printed canvas texture, lines, and a bar. */
+  const glider = () => {
+    const g = new THREE.Group();
+    const canvas = document.createElement("canvas");
+    canvas.width = 512; canvas.height = 128;
+    const c = canvas.getContext("2d");
+    c.fillStyle = "#c9a46a"; c.fillRect(0, 0, 512, 128);
+    c.fillStyle = "#a0322b";
+    c.fillRect(0, 18, 512, 14); c.fillRect(0, 96, 512, 10);
+    // A bird-like chevron in the middle
+    c.beginPath(); c.moveTo(256, 40); c.lineTo(300, 72); c.lineTo(256, 90); c.lineTo(212, 72); c.closePath(); c.fill();
+    c.beginPath(); c.moveTo(150, 60); c.lineTo(200, 74); c.lineTo(150, 84); c.closePath(); c.fill();
+    c.beginPath(); c.moveTo(362, 60); c.lineTo(312, 74); c.lineTo(362, 84); c.closePath(); c.fill();
+    c.strokeStyle = "#6b4a22"; c.lineWidth = 6; c.strokeRect(3, 3, 506, 122);
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    const fabric = new THREE.MeshStandardMaterial({ map: tex, side: THREE.DoubleSide, roughness: 0.9 });
+
+    // Span runs along Z, chord along X. Bend the plane into an arch.
+    const SPAN = 3.4, CHORD = 1.05, TOP = 3.25;
+    const geo = new THREE.PlaneGeometry(SPAN, CHORD, 24, 4);
+    geo.rotateX(-Math.PI / 2); // lie flat: plane x -> world x? remap below
+    const p = geo.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      const spanPos = p.getX(i);          // along span
+      const chordPos = p.getZ(i);         // along chord
+      const t = spanPos / (SPAN / 2);
+      const y = TOP - 0.55 * t * t + 0.06 * Math.cos(chordPos * Math.PI); // arch plus a little camber
+      p.setXYZ(i, -chordPos, y, spanPos);
+    }
+    geo.computeVertexNormals();
+    g.add(new THREE.Mesh(geo, fabric));
+
+    // Lines from the wing to the hands, and the hand bar
+    const hands = [[0.02, 2.05, 0.22], [0.02, 2.05, -0.22]];
+    const LINE = mat(0x5a3d1c);
+    for (const z of [1.6, 0.9, 0.3]) {
+      const t = z / (SPAN / 2);
+      const y = TOP - 0.55 * t * t;
+      g.add(limb([0, y, z], hands[0], 0.006, LINE));
+      g.add(limb([0, y, -z], hands[1], 0.006, LINE));
+    }
+    g.add(limb([0.02, 2.05, 0.3], [0.02, 2.05, -0.3], 0.02, LEATHER));
+    return g;
+  };
+
+  const gliding = () => {
+    const g = new THREE.Group();
+    const b = body();
+    b.rotation.z = -0.12; // lean forward into the glide
+    g.add(b);
+    // Arms reaching up to the bar
+    g.add(limb([0, 1.33, 0.19], [0.02, 2.02, 0.22], 0.05, TUNIC));
+    g.add(limb([0, 1.33, -0.19], [0.02, 2.02, -0.22], 0.05, TUNIC));
+    g.add(mesh(new THREE.SphereGeometry(0.045, 6, 5), SKIN, 0.02, 2.05, 0.22));
+    g.add(mesh(new THREE.SphereGeometry(0.045, 6, 5), SKIN, 0.02, 2.05, -0.22));
+    g.add(glider());
+    return g;
+  };
+
+  const standing = () => {
+    const g = new THREE.Group();
+    g.add(body());
+    // Left arm relaxed, right arm holding the Slate up to look at it
+    g.add(limb([0, 1.33, 0.2], [0.02, 0.95, 0.26], 0.05, TUNIC));
+    g.add(mesh(new THREE.SphereGeometry(0.045, 6, 5), SKIN, 0.02, 0.92, 0.27));
+    g.add(limb([0, 1.33, -0.2], [0.2, 1.12, -0.12], 0.05, TUNIC));
+    g.add(limb([0.2, 1.12, -0.12], [0.36, 1.25, -0.02], 0.045, TUNIC));
+    g.add(mesh(new THREE.SphereGeometry(0.045, 6, 5), SKIN, 0.37, 1.25, -0.02));
+    // The Slate, tilted toward his face, with a glowing screen and eye
+    const slate = new THREE.Group();
+    slate.add(mesh(new THREE.BoxGeometry(0.02, 0.16, 0.24), SLATE));
+    slate.add(mesh(new THREE.BoxGeometry(0.004, 0.12, 0.2), GLOW, -0.012, 0, 0));
+    slate.add(mesh(new THREE.TorusGeometry(0.03, 0.006, 4, 12), ORANGE, 0.012, 0, 0).rotateY(Math.PI / 2));
+    slate.position.set(0.4, 1.3, 0.02);
+    slate.rotation.z = -0.7;
+    g.add(slate);
+    return g;
+  };
+
+  const exporter = new GLTFExporter();
+  const toBase64 = (obj) => new Promise((resolve, reject) => {
+    const scene = new THREE.Scene();
+    scene.add(obj);
+    exporter.parse(scene, (buf) => {
+      const bytes = new Uint8Array(buf);
+      let s = "";
+      for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+      resolve(btoa(s));
+    }, reject, { binary: true });
+  });
+
+  window.models = Promise.all([toBase64(gliding()), toBase64(standing())])
+    .then(([glide, stand]) => ({ glide, stand }));
+</script>
