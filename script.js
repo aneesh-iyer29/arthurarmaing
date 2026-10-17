@@ -100,6 +100,7 @@
     use3D = ok;
     world.classList.toggle("is-3d", ok);
     $("#explore").hidden = !ok;
+    $("#slate-close").hidden = !ok;
     if (ok) flight.placeShrines(POIS.map((p) => Object.assign(p.campus, { label: p.shrine, done: orbs.has(p.name) })));
     press.textContent = "Tap or press any key to begin";
   });
@@ -390,6 +391,7 @@
     world.className = "is-3d exploring";
     held.clear();
     flight.explore(moved, edge);
+    walkedBefore = true;
     here = null;
     nearShrine = null;
     hudPlace.textContent = "Georgia Tech";
@@ -422,6 +424,14 @@
   };
 
   $("#explore").addEventListener("click", explore);
+
+  /* Closing the Slate drops me back on campus, wherever I was standing. */
+  let walkedBefore = false;
+  const closeSlate = () => {
+    if (!use3D || phase !== "slate") return;
+    explore({ intro: !walkedBefore });
+  };
+  $("#slate-close").addEventListener("click", closeSlate);
   $("#map-btn").addEventListener("click", openSlate);
 
   /* The stick. */
@@ -595,7 +605,9 @@
     if (talkAt < talk.length - 1) { talkAt += 1; showTalk(); }
     else leaveShrine();
   };
-  $("#shrine-talk").addEventListener("click", () => { if (talkAt < talk.length - 1) nextTalk(); });
+  $("#shrine-end").addEventListener("click", (e) => {
+    if (!e.target.closest("button") && talkAt < talk.length - 1) nextTalk();
+  });
 
   const completeShrine = (p) => {
     if (inShrine !== p) return;
@@ -851,7 +863,10 @@
     if (phase === "talking" && ["Enter", " ", "a", "A"].includes(e.key)) { e.preventDefault(); advance(); return; }
     if (phase === "slate") {
       if (e.key === "x" || e.key === "X") glaze();
-      if (e.key === "b" || e.key === "B" || e.key === "Escape") showTab("map");
+      // B steps back to the map tab, then off the Slate; Escape closes it.
+      const onMap = !$('[data-panel="map"]').hidden;
+      if (e.key === "Escape" || ((e.key === "b" || e.key === "B") && onMap)) closeSlate();
+      else if (e.key === "b" || e.key === "B") showTab("map");
     }
   });
 

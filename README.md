@@ -55,7 +55,7 @@ The landing spot is the `TECH_GREEN` constant at the top of `flight3d.js` if it 
 
 - **Keyboard:** WASD or the arrow keys walk, Shift runs (until the stamina wheel empties), Q and E turn the camera, M or Escape opens the Slate.
 - **Mouse:** drag to look around, scroll to zoom.
-- **Phone:** the stick in the bottom left walks (push it all the way to run), and dragging anywhere else looks around.
+- **Phone:** the stick in the bottom left walks (push it all the way to run), and dragging anywhere else looks around. The ✕ in the corner of the Slate always takes you back to campus, and shrines keep "Leave shrine" pinned to the top.
 
 Walking up to a building announces it the way the game announces a new area, with a line from Arthur
 about Aneesh. The buildings and their lines are the `LANDMARKS` list in `script.js` (coordinates from

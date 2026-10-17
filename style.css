@@ -500,6 +500,19 @@ img { display: block; max-width: 100%; }
   border-bottom: 1px solid var(--slate-edge);
   background: linear-gradient(rgba(79, 227, 255, .06), transparent);
 }
+/* Always-there way off the Slate, pinned to the corner even when it scrolls. */
+.slate-close {
+  position: fixed; z-index: 8; display: none; top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right));
+  width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
+  place-items: center;
+  background: rgba(10, 16, 20, .85); border: 2px solid var(--cyan); color: #fff;
+  font-size: 18px; font-weight: 800;
+  box-shadow: 0 0 14px rgba(79, 227, 255, .45);
+}
+body.slate-open .slate-close { display: grid; }
+body.slate-open .slate-close[hidden] { display: none; }
+.slate-close:hover { background: var(--cyan); color: #0b2630; }
+.slate.over-3d .slate-top { padding-right: 70px; }
 .slate-eye { color: var(--orange); width: 44px; filter: drop-shadow(0 0 6px rgba(255, 154, 60, .6)); }
 .slate-eye svg { display: block; width: 100%; }
 .tabs { display: flex; gap: 4px; flex-wrap: wrap; }
@@ -624,7 +637,7 @@ img { display: block; max-width: 100%; }
   transform-origin: 50% 70%;
 }
 .you-are-here .label {
-  display: block; margin-top: 4px; font-size: 11px; font-weight: 800; white-space: nowrap;
+  display: block; width: 104px; margin-top: 4px; text-align: center; font-size: 11px; line-height: 1.25; font-weight: 800;
   color: var(--gold); text-shadow: 0 1px 3px #000;
 }
 
@@ -847,7 +860,7 @@ kbd {
 /* ================= Inside a shrine ================= */
 body.in-shrine { overflow: hidden; }
 .shrine {
-  position: fixed; inset: 0; z-index: 25; overflow-y: auto;
+  position: fixed; inset: 0; z-index: 25; overflow-y: auto; overscroll-behavior: contain;
   color: var(--ink);
   background:
     radial-gradient(ellipse at 50% 18%, rgba(79, 227, 255, .16), transparent 55%),
@@ -855,7 +868,7 @@ body.in-shrine { overflow: hidden; }
     repeating-linear-gradient(90deg, rgba(79, 227, 255, .045) 0 1px, transparent 1px 72px),
     repeating-linear-gradient(0deg, rgba(79, 227, 255, .045) 0 1px, transparent 1px 72px),
     #091014;
-  padding: max(14px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  padding: 0 16px max(24px, env(safe-area-inset-bottom));
 }
 .shrine[hidden] { display: none; }
 .shrine::before {
@@ -885,13 +898,15 @@ body.in-shrine { overflow: hidden; }
 .shrine.intro .shrine-head, .shrine.intro .shrine-room { pointer-events: none; }
 .shrine.finished .shrine-room { opacity: .15; pointer-events: none; }
 .shrine-head {
+  position: sticky; top: 0; z-index: 3;
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  max-width: 720px; margin: 0 auto 14px;
+  max-width: 720px; margin: 0 auto 14px; padding: max(14px, env(safe-area-inset-top)) 0 10px;
+  background: linear-gradient(#091014 75%, rgba(9, 16, 20, 0));
 }
 .sh-name { margin: 0; font-family: var(--title); font-size: clamp(20px, 3.4vw, 28px); color: #fff; }
 .sh-trial { margin: 0; font-size: 13px; color: var(--cyan); letter-spacing: .06em; }
 .shrine-leave {
-  flex: none; background: rgba(0, 0, 0, .4); border: 1px solid rgba(255, 255, 255, .3); color: #fff;
+  flex: none; min-height: 40px; background: rgba(0, 0, 0, .4); border: 1px solid rgba(255, 255, 255, .3); color: #fff;
   border-radius: 999px; padding: 7px 14px; font: 600 13px var(--body); cursor: pointer;
 }
 .shrine-room { max-width: 720px; margin: 0 auto; }
@@ -903,7 +918,7 @@ body.in-shrine { overflow: hidden; }
 }
 
 .shrine-end {
-  position: fixed; inset: 0; z-index: 2; overflow-y: auto;
+  position: fixed; inset: 0; z-index: 4; overflow-y: auto; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
   padding: 16px; background: radial-gradient(circle at 50% 40%, rgba(79, 227, 255, .2), rgba(4, 10, 14, .75) 60%);
   animation: fade-in .6s ease both;
