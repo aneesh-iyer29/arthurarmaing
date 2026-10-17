@@ -31,19 +31,6 @@ What he flies over depends on what's available:
 2. **Satellite imagery** on a flat globe when there's neither, or the key is rejected.
 3. **The original 2D cartoon descent** if the browser has no WebGL or Cesium fails to load.
 
-## Walking around campus
-
-"Walk around campus" in the Slate drops Arthur on Tech Green to explore on foot:
-
-- **Keyboard:** WASD or the arrow keys walk, Shift runs (until the stamina wheel empties), Q and E turn the camera, V switches to first person, M or Escape opens the Slate.
-- **Mouse:** drag to look around, scroll to zoom.
-- **Phone:** the stick in the bottom left walks (push it all the way to run), and dragging anywhere else looks around.
-
-Walking up to a building announces it the way the game announces a new area, with a line from Arthur
-about Aneesh. The buildings and their lines are the `LANDMARKS` list in `script.js` (coordinates from
-OpenStreetMap). With the photoreal 3D tiles his feet follow whatever is under them, rooftops included;
-on the satellite fallback the ground is flat.
-
 ### Free option: Cesium ion
 
 1. Sign up at [ion.cesium.com](https://ion.cesium.com) (the free Community plan is fine for a non-commercial site).
@@ -59,6 +46,19 @@ monthly allowance) and restrict it to your domain. Set `GOOGLE_MAPS_API_KEY` in 
 `config.js`. If both are set, the Google key is tried first.
 
 The landing spot is the `TECH_GREEN` constant at the top of `flight3d.js` if it needs nudging.
+
+## Walking around campus
+
+"Walk around campus" in the Slate drops Arthur on Tech Green to explore on foot:
+
+- **Keyboard:** WASD or the arrow keys walk, Shift runs (until the stamina wheel empties), Q and E turn the camera, V switches to first person, M or Escape opens the Slate.
+- **Mouse:** drag to look around, scroll to zoom.
+- **Phone:** the stick in the bottom left walks (push it all the way to run), and dragging anywhere else looks around.
+
+Walking up to a building announces it the way the game announces a new area, with a line from Arthur
+about Aneesh. The buildings and their lines are the `LANDMARKS` list in `script.js` (coordinates from
+OpenStreetMap). With the photoreal 3D tiles his feet follow whatever is under them, rooftops included;
+on the satellite fallback the ground is flat.
 
 ## Run locally
 
