@@ -262,7 +262,56 @@ img { display: block; max-width: 100%; }
 #world.flying .wind i { animation: whoosh .9s linear infinite; }
 #world.flying .wind i:nth-child(2n) { animation-delay: .3s; }
 #world.flying .wind i:nth-child(3n) { animation-delay: .55s; }
-#world.is-3d .title-card { background: radial-gradient(ellipse at center, rgba(10, 30, 50, .15), rgba(10, 20, 30, .55)); }
+#world.is-3d .title-card { justify-content: flex-start; padding-top: max(56px, 9vh); background: linear-gradient(rgba(10, 20, 30, .55), transparent 45%, transparent 75%, rgba(10, 20, 30, .45)); }
+#world.is-3d .title-card .press { position: absolute; left: 0; right: 0; bottom: max(28px, 7vh); }
+
+/* In-flight HUD */
+.hud { display: none; position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+#world.flying .hud, #world.descending .hud, #world.landed .hud { display: block; }
+.hud-hearts {
+  position: absolute; top: max(18px, env(safe-area-inset-top)); left: 22px;
+  display: flex; flex-wrap: wrap; gap: 3px; width: 220px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .6));
+}
+.hud-hearts svg { width: 19px; height: 17px; fill: #e5353b; stroke: #fff; stroke-width: 1.4; }
+.hud-stamina { position: absolute; left: 60%; top: 42%; width: 52px; height: 52px; transform: rotate(-90deg); filter: drop-shadow(0 0 3px rgba(0, 0, 0, .5)); transition: opacity .6s; }
+.hud-stamina circle { fill: none; stroke-width: 7; }
+.hud-stamina .track { stroke: rgba(20, 30, 20, .55); }
+.hud-stamina .bar { stroke: #3fd14a; stroke-dasharray: 119.4; stroke-dashoffset: 0; transition: stroke-dashoffset 1s ease; }
+#world.flying .hud-stamina .bar { animation: drain 26s linear forwards; }
+#world.landed .hud-stamina { opacity: 0; }
+.hud-minimap {
+  position: absolute; right: 22px; bottom: 22px; width: 150px; height: 150px;
+  border-radius: 50%; overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, .85);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, .35), 0 4px 18px rgba(0, 0, 0, .45);
+}
+.hud-map { position: absolute; inset: -40%; animation: minimap 26s linear infinite; }
+.hud-map img { width: 100%; height: 100%; object-fit: cover; opacity: .92; }
+.hud-arrow {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -60%);
+  border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 18px solid var(--gold);
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, .8));
+}
+.hud-n {
+  position: absolute; left: 50%; top: 6px; transform: translateX(-50%);
+  font-size: 11px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px #000;
+}
+.hud-place {
+  position: absolute; right: 22px; bottom: 182px; margin: 0;
+  font-size: 12px; font-weight: 700; letter-spacing: .04em; color: #fff; text-shadow: 0 1px 3px #000;
+}
+#world.landed .hud-place, #world.landed .hud-minimap { opacity: .9; }
+@keyframes drain { to { stroke-dashoffset: 95; stroke: #e8c43a; } }
+@keyframes minimap { to { transform: rotate(-40deg) scale(1.15); } }
+@media (max-width: 600px) {
+  .hud-hearts { width: 150px; left: 14px; }
+  .hud-hearts svg { width: 13px; height: 12px; }
+  .hud-minimap { width: 96px; height: 96px; right: 14px; bottom: 14px; }
+  .hud-place { right: 14px; bottom: 118px; font-size: 11px; }
+  .hud-stamina { width: 40px; height: 40px; }
+}
+@media (max-width: 600px) { #world.landed .hud-minimap, #world.landed .hud-place { display: none; } }
 
 /* Title card */
 .title-card {

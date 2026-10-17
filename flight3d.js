@@ -112,9 +112,10 @@ window.Flight3D = (() => {
     const tg = at(TECH_GREEN.lat, TECH_GREEN.lon, 0);
 
     if (mode === "idle") {
-      orbit += 0.0012;
-      currentFrame = { h: orbit, pitch: -0.42, range: 950, lift: 40 };
-      look(lift(tg, 40), orbit, -0.42, 950);
+      // Title view: circle Arthur where he stands on the lawn.
+      orbit += 0.0016;
+      currentFrame = { h: orbit, pitch: -0.14, range: 9, lift: 1.1 };
+      look(lift(tg, 1.1), orbit, -0.14, 9);
       return;
     }
 
@@ -223,7 +224,11 @@ window.Flight3D = (() => {
         ground = 0;
       }
 
-      if (photoreal) sampleGround();
+      if (photoreal) {
+        sampleGround();
+        await groundReady;
+      }
+      idle();
       return true;
     } catch (err) {
       console.warn("3D descent unavailable, using the 2D one.", err);
@@ -283,6 +288,7 @@ window.Flight3D = (() => {
     else if (mode === "idle") {
       travelHeading = headingBetween(at(PATH[5][0], PATH[5][1], 0), at(TECH_GREEN.lat, TECH_GREEN.lon, 0));
       if (!stander) land();
+      mode = "landed";
     }
     shot = null;
     currentFrame = { h: travelHeading + 0.5, pitch: -0.5, range: 2.1, lift: 1.35 };
@@ -295,6 +301,13 @@ window.Flight3D = (() => {
     if (glider) { viewer.entities.remove(glider); glider = null; }
     viewer.clock.shouldAnimate = false;
     shot = null;
+    const tg = at(TECH_GREEN.lat, TECH_GREEN.lon, 0);
+    travelHeading = headingBetween(at(PATH[5][0], PATH[5][1], 0), tg);
+    stander = viewer.entities.add({
+      position: tg,
+      orientation: facing(tg, travelHeading),
+      model: { uri: "models/arthur-stand.glb", scale: 1 },
+    });
     mode = "idle";
   };
 

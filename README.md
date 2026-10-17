@@ -10,13 +10,21 @@ Plain static site with no build step:
 - `flight3d.js`: the 3D descent onto Tech Green, built on CesiumJS (loaded from jsDelivr).
 - `models/`: Arthur's low-poly gliding and standing models, with his face. Rebuild them with `node tools/build-models.js`.
 - `img/aneesh-hyrule.jpg`: the Slate map, Aneesh's portrait turned into terrain. Rebuild it with `python3 tools/build-map.py`.
-- `img/gt/`: Georgia Tech photos for the loading screens.
 - `api/config.js`: a Vercel function that hands the page the Google Maps key.
+
+## The loading screen
+
+Laid out after the game's loading screen (and the [botw-loader](https://github.com/leviv/botw-loader)
+recreation): a white band wipes across the top with hearts, stamina, stats, and bobbing icons,
+tips cycle below (A or "Next tip" skips), and a logo block fills as the campus loads. All icons are
+original SVG; no images, sounds, or fonts are taken from the game or from botw-loader.
 
 ## The 3D descent
 
 Arthur glides in from Midtown, over the Connector, and lands on Tech Green, with the
-camera following behind him. What he flies over depends on what's available:
+camera following behind him, while a game-style HUD shows hearts, a draining stamina wheel,
+and a minimap. On the title screen he stands on Tech Green with the camera circling him.
+What he flies over depends on what's available:
 
 1. **Google photorealistic 3D tiles** (the Google Earth look) when a Google Maps key is set.
 2. **Satellite imagery** on a flat globe when there's no key, or the key is rejected.
