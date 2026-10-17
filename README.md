@@ -12,7 +12,7 @@ Plain static site with no build step:
 - `shrines.js`: the shrines on the Slate map (one per thing Aneesh has done), where each stands on campus, and the trial inside each one.
 - `warp.js`: the blue light effect for warping in and out.
 - `models/`: Arthur's low-poly gliding and standing models, with his face. Rebuild them with `node tools/build-models.js`.
-- `img/aneesh-hyrule.jpg`: the Slate map, Aneesh's silhouette turned into an island (his face is the terrain) in a game-style sea with a few outlying isles. Rebuild it with `python3 tools/build-map.py`. If you move an isle, move its marker in `script.js` too.
+- `img/aneesh-island.jpg`: the Slate map, Aneesh's silhouette turned into an island (his face is the terrain) in a game-style sea with a few outlying isles. Rebuild it with `python3 tools/build-map.py`. If you move an isle, move its marker in `script.js` too.
 - `api/config.js`: a Vercel function that hands the page the Google Maps key.
 
 ## The loading screen
@@ -53,7 +53,7 @@ The landing spot is the `TECH_GREEN` constant at the top of `flight3d.js` if it 
 
 "Walk around campus" in the Slate drops Arthur on Tech Green to explore on foot:
 
-- **Keyboard:** WASD or the arrow keys walk, Shift runs (until the stamina wheel empties), Q and E turn the camera, V switches to first person, M or Escape opens the Slate.
+- **Keyboard:** WASD or the arrow keys walk, Shift runs (until the stamina wheel empties), Q and E turn the camera, M or Escape opens the Slate.
 - **Mouse:** drag to look around, scroll to zoom.
 - **Phone:** the stick in the bottom left walks (push it all the way to run), and dragging anywhere else looks around.
 

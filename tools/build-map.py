@@ -8,7 +8,7 @@ hillshading, contour lines, coastal ripples, a few outlying isles, an earthy
 map palette, and a faint blend of the original photo so the face still reads.
 
 Usage: python3 tools/build-map.py   (needs numpy and Pillow)
-Writes img/aneesh-hyrule.jpg. The portrait is shrunk by SCALE and moved down
+Writes img/aneesh-island.jpg. The portrait is shrunk by SCALE and moved down
 by TOP, so a point at (x, y) on the photo (0..1) lands on the map at
 (0.5 + (x - 0.5) * SCALE, TOP + y * SCALE). script.js places its markers
 with the same numbers.
@@ -20,7 +20,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "img" / "aneesh-map.jpg"
-OUT = ROOT / "img" / "aneesh-hyrule.jpg"
+OUT = ROOT / "img" / "aneesh-island.jpg"
 SIZE = 1600
 SCALE = 0.8
 TOP = 0.07
