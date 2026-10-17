@@ -26,15 +26,23 @@ camera following behind him, while a game-style HUD shows hearts, a draining sta
 and a minimap. On the title screen he stands on Tech Green with the camera circling him.
 What he flies over depends on what's available:
 
-1. **Google photorealistic 3D tiles** (the Google Earth look) when a Google Maps key is set.
-2. **Satellite imagery** on a flat globe when there's no key, or the key is rejected.
+1. **Google photorealistic 3D tiles** (the Google Earth look) when a Cesium ion token or a Google Maps key is set.
+2. **Satellite imagery** on a flat globe when there's neither, or the key is rejected.
 3. **The original 2D cartoon descent** if the browser has no WebGL or Cesium fails to load.
 
-To get the photorealistic version, create a key in Google Cloud with the **Map Tiles API**
-enabled, and restrict it to your domain (it is visible to visitors either way). Then:
+### Free option: Cesium ion
 
-- **Vercel:** set the `GOOGLE_MAPS_API_KEY` environment variable and redeploy.
-- **Anywhere else:** put the key in `config.js`.
+1. Sign up at [ion.cesium.com](https://ion.cesium.com) (the free Community plan is fine for a non-commercial site).
+2. Open **Asset Depot**, find **Google Photorealistic 3D Tiles**, and click **Add to my assets**.
+3. Under **Access Tokens**, create a token with the default scopes and that asset selected. Add the site's
+   domain under allowed URLs, since visitors can see the token.
+4. **Vercel:** set the `CESIUM_ION_TOKEN` environment variable and redeploy. **Elsewhere:** put it in `config.js`.
+
+### Google Maps key
+
+Create a key in Google Cloud with the **Map Tiles API** enabled (needs billing turned on; there's a free
+monthly allowance) and restrict it to your domain. Set `GOOGLE_MAPS_API_KEY` in Vercel, or put it in
+`config.js`. If both are set, the Google key is tried first.
 
 The landing spot is the `TECH_GREEN` constant at the top of `flight3d.js` if it needs nudging.
 

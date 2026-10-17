@@ -1,10 +1,14 @@
 /* The 3D descent: Arthur paraglides over Atlanta and lands on Tech Green,
-   seen in third person. Uses Google's photorealistic 3D tiles when a Maps
-   key is available (Vercel env var via /api/config, or config.js), and a
-   satellite map otherwise. If WebGL or Cesium is unavailable, init() resolves
+   seen in third person. Uses Google's photorealistic 3D tiles when it can:
+   directly with a Google Maps key, or through a free Cesium ion token (both
+   from the Vercel env via /api/config, or config.js). Otherwise it falls
+   back to a satellite map. If WebGL or Cesium is unavailable, init() resolves
    false and the page keeps its 2D descent. */
 window.Flight3D = (() => {
   const CESIUM = "https://cdn.jsdelivr.net/npm/cesium@1.145.0/Build/Cesium/";
+
+  // Google Photorealistic 3D Tiles in Cesium ion's asset depot.
+  const ION_GOOGLE_TILES = 2275207;
 
   // Center of Tech Green. Nudge this if the landing spot looks off.
   const TECH_GREEN = { lat: 33.7744, lon: -84.3975 };
@@ -52,15 +56,38 @@ window.Flight3D = (() => {
     } catch { return false; }
   };
 
-  const getKey = async () => {
+  const getKeys = async () => {
+    const keys = { google: window.ARTHUR_GOOGLE_MAPS_KEY || "", ion: window.ARTHUR_CESIUM_ION_TOKEN || "" };
     try {
       const res = await fetch("/api/config", { signal: AbortSignal.timeout(2500) });
       if (res.ok) {
-        const { googleMapsKey } = await res.json();
-        if (googleMapsKey) return googleMapsKey;
+        const cfg = await res.json();
+        keys.google = cfg.googleMapsKey || keys.google;
+        keys.ion = cfg.cesiumIonToken || keys.ion;
       }
-    } catch { /* not on Vercel, or no key set */ }
-    return window.ARTHUR_GOOGLE_MAPS_KEY || "";
+    } catch { /* not on Vercel */ }
+    return keys;
+  };
+
+  /* Google's 3D tiles, straight from Google or via Cesium ion. */
+  const loadPhotoreal = async ({ google, ion }) => {
+    if (google) {
+      try {
+        C.GoogleMaps.defaultApiKey = google;
+        return await C.createGooglePhotorealistic3DTileset({ key: google });
+      } catch (err) {
+        console.warn("Google 3D tiles unavailable with the Maps key.", err);
+      }
+    }
+    if (ion) {
+      try {
+        C.Ion.defaultAccessToken = ion;
+        return await C.Cesium3DTileset.fromIonAssetId(ION_GOOGLE_TILES);
+      } catch (err) {
+        console.warn("Google 3D tiles unavailable through Cesium ion (check the token and that the asset is in My Assets).", err);
+      }
+    }
+    return null;
   };
 
   const at = (lat, lon, h) => C.Cartesian3.fromDegrees(lon, lat, ground + h);
@@ -197,22 +224,16 @@ window.Flight3D = (() => {
       viewer.clock.currentTime = C.JulianDate.fromIso8601(START_TIME);
       scene.preRender.addEventListener(tick);
 
-      const key = await getKey();
-      if (key) {
-        try {
-          C.GoogleMaps.defaultApiKey = key;
-          const tileset = await C.createGooglePhotorealistic3DTileset({ key });
-          scene.primitives.add(tileset);
-          scene.globe.show = false;
-          photoreal = true;
-          // Hold the loading screen until campus has actually streamed in.
-          await Promise.race([
-            new Promise((r) => tileset.initialTilesLoaded.addEventListener(r)),
-            new Promise((r) => setTimeout(r, 9000)),
-          ]);
-        } catch (err) {
-          console.warn("Google 3D tiles unavailable (check the key), using the satellite map.", err);
-        }
+      const tileset = await loadPhotoreal(await getKeys());
+      if (tileset) {
+        scene.primitives.add(tileset);
+        scene.globe.show = false;
+        photoreal = true;
+        // Hold the loading screen until campus has actually streamed in.
+        await Promise.race([
+          new Promise((r) => tileset.initialTilesLoaded.addEventListener(r)),
+          new Promise((r) => setTimeout(r, 9000)),
+        ]);
       }
       if (!photoreal) {
         viewer.imageryLayers.addImageryProvider(new C.UrlTemplateImageryProvider({
