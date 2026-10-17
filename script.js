@@ -269,11 +269,21 @@
 
   /* Landmarks talk on their own every few seconds. */
   const say = (p, text) => {
+    POIS.forEach((q) => {
+      if (q === p) return;
+      clearTimeout(q.hide);
+      q.el.classList.remove("talking");
+      $(".bubble", q.el).classList.remove("show");
+    });
     const bubble = $(".bubble", p.el);
     bubble.textContent = text;
     bubble.classList.add("show");
+    p.el.classList.add("talking");
     clearTimeout(p.hide);
-    p.hide = setTimeout(() => bubble.classList.remove("show"), 3200);
+    p.hide = setTimeout(() => {
+      bubble.classList.remove("show");
+      p.el.classList.remove("talking");
+    }, 3200);
   };
 
   let chatter;
