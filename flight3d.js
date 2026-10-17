@@ -33,6 +33,29 @@ window.Flight3D = (() => {
   const START_TIME = "2026-04-15T16:30:00Z";
 
   let C, viewer, scene, ground = GROUND_FALLBACK, photoreal = false;
+  // Which map source ended up in use and why, for ?debug and the console.
+  const status = { source: "none", notes: [], tilesLoaded: 0, tilesFailed: 0 };
+  const note = (msg) => { status.notes.push(msg); console.info(`[Arthur 3D] ${msg}`); showDebug(); };
+  const describe = (err) => {
+    if (!err) return "unknown error";
+    if (err.statusCode) {
+      let body = "";
+      try { body = typeof err.response === "string" ? err.response : JSON.stringify(err.response); } catch { /* ignore */ }
+      return `HTTP ${err.statusCode}${body ? ` ${body.slice(0, 160)}` : ""}`;
+    }
+    return err.message || String(err);
+  };
+  const debugOn = /[?&]debug\b/.test(location.search);
+  let debugEl;
+  const showDebug = () => {
+    if (!debugOn) return;
+    if (!debugEl) {
+      debugEl = document.createElement("pre");
+      debugEl.style.cssText = "position:fixed;left:8px;top:8px;z-index:99;max-width:min(560px,calc(100% - 16px));margin:0;padding:8px 10px;border-radius:8px;background:rgba(0,0,0,.8);color:#9ff;font:11px/1.45 ui-monospace,monospace;white-space:pre-wrap;pointer-events:none";
+      document.body.appendChild(debugEl);
+    }
+    debugEl.textContent = [`source: ${status.source}`, `3D tiles loaded: ${status.tilesLoaded}, failed: ${status.tilesFailed}`, ...status.notes].join("\n");
+  };
   let mode = "idle";
   let glider, stander, positions, t0, t1;
   let orbit = 0, heading = 0, travelHeading = 0;
@@ -71,20 +94,25 @@ window.Flight3D = (() => {
 
   /* Google's 3D tiles, straight from Google or via Cesium ion. */
   const loadPhotoreal = async ({ google, ion }) => {
+    note(`keys: google ${google ? "set" : "missing"}, ion ${ion ? "set" : "missing"}`);
     if (google) {
       try {
         C.GoogleMaps.defaultApiKey = google;
-        return await C.createGooglePhotorealistic3DTileset({ key: google });
+        const t = await C.createGooglePhotorealistic3DTileset({ key: google });
+        status.source = "google";
+        return t;
       } catch (err) {
-        console.warn("Google 3D tiles unavailable with the Maps key.", err);
+        note(`Google key rejected: ${describe(err)}`);
       }
     }
     if (ion) {
       try {
         C.Ion.defaultAccessToken = ion;
-        return await C.Cesium3DTileset.fromIonAssetId(ION_GOOGLE_TILES);
+        const t = await C.Cesium3DTileset.fromIonAssetId(ION_GOOGLE_TILES);
+        status.source = "ion";
+        return t;
       } catch (err) {
-        console.warn("Google 3D tiles unavailable through Cesium ion (check the token and that the asset is in My Assets).", err);
+        note(`Cesium ion failed (check the token, its allowed URLs, and that Google Photorealistic 3D Tiles is in My Assets): ${describe(err)}`);
       }
     }
     return null;
@@ -224,26 +252,45 @@ window.Flight3D = (() => {
       viewer.clock.currentTime = C.JulianDate.fromIso8601(START_TIME);
       scene.preRender.addEventListener(tick);
 
+      // Satellite imagery on the globe is always there underneath, so the
+      // ground never goes blank while (or if) the 3D tiles stream in.
+      viewer.imageryLayers.addImageryProvider(new C.UrlTemplateImageryProvider({
+        url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        maximumLevel: 19,
+        credit: "Imagery: Esri, Maxar, Earthstar Geographics",
+      }));
+      scene.globe.baseColor = C.Color.fromCssColorString("#5b7d4a");
+
       const tileset = await loadPhotoreal(await getKeys());
       if (tileset) {
+        tileset.tileLoad.addEventListener(() => {
+          status.tilesLoaded += 1;
+          if (status.tilesLoaded === 1) scene.globe.show = false;
+          if (status.tilesLoaded % 25 === 1) showDebug();
+        });
+        tileset.tileFailed.addEventListener((e) => {
+          status.tilesFailed += 1;
+          if (status.tilesFailed <= 3) note(`3D tile failed: ${e && e.message ? e.message : "unknown"}`);
+        });
         scene.primitives.add(tileset);
-        scene.globe.show = false;
-        photoreal = true;
         // Hold the loading screen until campus has actually streamed in.
         await Promise.race([
           new Promise((r) => tileset.initialTilesLoaded.addEventListener(r)),
-          new Promise((r) => setTimeout(r, 9000)),
+          new Promise((r) => setTimeout(r, 12000)),
         ]);
+        if (status.tilesLoaded > 0) {
+          photoreal = true;
+        } else {
+          note("no 3D tiles arrived in 12s, using the satellite map");
+          scene.primitives.remove(tileset);
+          scene.globe.show = true;
+        }
       }
       if (!photoreal) {
-        viewer.imageryLayers.addImageryProvider(new C.UrlTemplateImageryProvider({
-          url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-          maximumLevel: 19,
-          credit: "Imagery: Esri, Maxar, Earthstar Geographics",
-        }));
-        scene.globe.baseColor = C.Color.fromCssColorString("#5b7d4a");
+        status.source = "satellite";
         ground = 0;
       }
+      note(`using: ${status.source}`);
 
       if (photoreal) {
         sampleGround();
@@ -336,5 +383,6 @@ window.Flight3D = (() => {
     init, start, lookAtSlate, skipToLanding, idle,
     get ready() { return !!viewer; },
     get photoreal() { return photoreal; },
+    status,
   };
 })();
