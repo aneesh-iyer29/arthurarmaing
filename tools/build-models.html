@@ -2,7 +2,8 @@
 <!-- Builds Arthur's two low-poly models (gliding and standing) and exports
      them as .glb. Run with `node tools/build-models.js`, which opens this page
      in headless Chromium and writes the files to models/. Units are meters;
-     the character faces +X with +Y up and his feet at the origin. -->
+     the character is built facing +X with +Y up and his feet at the origin,
+     then turned to face +Z on export, the glTF convention Cesium expects. -->
 <meta charset="utf-8">
 <script type="importmap">
   { "imports": {
@@ -170,6 +171,7 @@
   const exporter = new GLTFExporter();
   const toBase64 = (obj) => new Promise((resolve, reject) => {
     const scene = new THREE.Scene();
+    obj.rotation.y = -Math.PI / 2; // +X forward -> +Z forward
     scene.add(obj);
     exporter.parse(scene, (buf) => {
       const bytes = new Uint8Array(buf);

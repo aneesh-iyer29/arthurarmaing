@@ -135,6 +135,20 @@ img { display: block; max-width: 100%; }
 #world.landed #hero .body { animation: hop .45s ease-out; transform-origin: 100px 210px; }
 #world.checking #hero .mini-slate { opacity: 1; animation: pulse 1s ease-in-out infinite; }
 
+/* 3D mode: Cesium fills the world and the 2D scenery steps aside. The globe
+   stays laid out underneath from the start so Cesium can size itself. */
+#globe { position: absolute; inset: 0; }
+#globe .cesium-viewer, #globe .cesium-widget { width: 100%; height: 100%; }
+#globe .cesium-widget canvas { display: block; }
+#globe .cesium-viewer-bottom { opacity: .75; transform: scale(.85); transform-origin: left bottom; }
+#world.is-3d .sky, #world.is-3d .sun, #world.is-3d .clouds, #world.is-3d .mountains,
+#world.is-3d .tower, #world.is-3d .ground, #world.is-3d #hero { display: none; }
+#world.flying .wind { opacity: .8; }
+#world.flying .wind i { animation: whoosh .9s linear infinite; }
+#world.flying .wind i:nth-child(2n) { animation-delay: .3s; }
+#world.flying .wind i:nth-child(3n) { animation-delay: .55s; }
+#world.is-3d .title-card { background: radial-gradient(ellipse at center, rgba(10, 30, 50, .15), rgba(10, 20, 30, .55)); }
+
 /* Title card */
 .title-card {
   position: absolute; inset: 0;
@@ -207,16 +221,38 @@ img { display: block; max-width: 100%; }
   transform-origin: 50% 70%;
 }
 .slate[hidden] { display: none; }
-.slate.opening { animation: slate-in .7s cubic-bezier(.2, .9, .3, 1.05) both; }
+.slate { perspective: 1600px; perspective-origin: 50% 30%; }
+.slate.over-3d {
+  position: fixed; inset: 0; overflow-y: auto;
+  background: radial-gradient(ellipse at top, rgba(79, 227, 255, .08), transparent 60%), rgba(6, 10, 12, .5);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+.slate.over-3d .fine { color: #b7bcc0; }
+.slate.opening .slate-frame { animation: slate-rise 1.15s cubic-bezier(.2, .85, .25, 1) backwards; }
+.slate.opening .slate-boot { animation: boot 1.9s ease-out forwards; }
 
 .slate-frame {
+  position: relative;
   max-width: 1180px; margin: 0 auto;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transform-style: preserve-3d;
+  transition: transform .25s ease-out;
   background: linear-gradient(var(--slate-2), var(--slate));
   border: 2px solid var(--slate-edge);
   border-radius: 28px;
-  box-shadow: 0 0 0 6px #14181b, 0 0 40px rgba(79, 227, 255, .12), inset 0 0 30px rgba(0, 0, 0, .5);
+  /* Layered edges give the device some thickness. */
+  box-shadow: 0 0 0 6px #14181b, 0 2px 0 7px #2b3238, 0 10px 0 7px #0b0d0f, 0 30px 60px rgba(0, 0, 0, .55), 0 0 40px rgba(79, 227, 255, .12), inset 0 0 30px rgba(0, 0, 0, .5);
   overflow: hidden;
 }
+.slate-boot {
+  position: absolute; inset: 0; z-index: 10;
+  display: grid; place-items: center;
+  background: radial-gradient(circle, #1e262b, #0f1315);
+  color: var(--orange);
+  opacity: 0; pointer-events: none;
+}
+.slate-boot svg { width: min(220px, 40%); filter: drop-shadow(0 0 18px rgba(255, 154, 60, .8)); }
 
 .slate-top {
   display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
@@ -467,9 +503,17 @@ kbd {
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
 @keyframes look { 0%, 100% { transform: rotate(30deg); } 50% { transform: rotate(50deg); } }
 @keyframes flash { from { box-shadow: 0 0 0 2px var(--cyan), 0 0 24px rgba(79, 227, 255, .5); } to { box-shadow: none; } }
-@keyframes slate-in {
-  from { transform: scale(.08) translateY(40%); opacity: 0; border-radius: 40px; }
-  to { transform: none; opacity: 1; }
+@keyframes slate-rise {
+  0% { transform: translateY(75vh) rotateX(68deg) scale(.5); opacity: 0; filter: brightness(.4); }
+  45% { opacity: 1; }
+  75% { transform: translateY(-8px) rotateX(-3deg) scale(1.01); filter: brightness(1); }
+  100% { transform: none; }
+}
+@keyframes boot {
+  0% { opacity: 1; color: #6a4a2a; }
+  35% { opacity: 1; color: var(--orange); }
+  55% { opacity: 1; color: var(--cyan); }
+  100% { opacity: 0; color: var(--cyan); }
 }
 
 /* ================= Small screens ================= */

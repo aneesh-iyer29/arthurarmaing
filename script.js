@@ -21,8 +21,8 @@
 
   /* ---------------- The landing sequence ---------------- */
   const LINES = [
-    "Phew. Stuck the landing. Hi, I'm <em>Arthur</em>, and welcome to my website.",
-    "It's technically supposed to be about me. But there's someone around here who is way more interesting.",
+    "Phew. Stuck the landing, right in the middle of <em>Tech Green</em>. Hi, I'm <em>Arthur</em>, and welcome to my website.",
+    "It's technically supposed to be about me. But there's someone at Georgia Tech who is way more interesting.",
     "Let me pull up my Sheikah Slate and get my bearings...",
     "...Huh. The whole map is <em>Aneesh</em> again.",
     "Honestly? Good. There's nowhere else I'd rather explore.",
@@ -33,6 +33,18 @@
   let typing = null;
   const timers = [];
   const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+
+  /* The 3D descent loads in the background while the title is up. Until it
+     settles (or if it can't run), the 2D descent is the fallback. */
+  const flight = window.Flight3D;
+  const press = $("#press");
+  let use3D = false;
+  press.textContent = "Loading Georgia Tech...";
+  const ready3D = (flight ? flight.init($("#globe")) : Promise.resolve(false)).then((ok) => {
+    use3D = ok;
+    world.classList.toggle("is-3d", ok);
+    press.textContent = "Tap or press any key to begin";
+  });
 
   const typeLine = (html) => {
     dialog.classList.remove("ready");
@@ -64,15 +76,28 @@
   const advance = () => {
     if (typing) return finishLine();
     lineIndex += 1;
-    if (lineIndex === 2) world.classList.add("checking");
+    if (lineIndex === 2) {
+      world.classList.add("checking");
+      if (use3D) flight.lookAtSlate();
+    }
     if (lineIndex >= LINES.length) return openSlate();
     typeLine(LINES[lineIndex]);
   };
 
-  const start = () => {
+  const start = async () => {
     if (phase !== "title") return;
     phase = "descending";
+    await ready3D;
+    if (phase !== "descending") return; // skipped while loading
     title.classList.add("gone");
+    if (use3D) {
+      world.classList.add("flying");
+      flight.start(() => {
+        world.classList.remove("flying");
+        if (phase === "descending") land();
+      });
+      return;
+    }
     if (reduced) return land();
     world.classList.add("descending");
     later(land, 7000);
@@ -86,7 +111,7 @@
       dialog.hidden = false;
       lineIndex = 0;
       typeLine(LINES[0]);
-    }, reduced ? 0 : 650);
+    }, reduced || use3D ? 0 : 650);
   };
 
   const openSlate = () => {
@@ -94,12 +119,22 @@
     phase = "slate";
     timers.splice(0).forEach(clearTimeout);
     clearInterval(typing);
-    world.hidden = true;
+    title.classList.add("gone");
+    dialog.hidden = true;
+    world.classList.remove("flying");
+    if (use3D) {
+      // The Slate floats over campus, the way the game's map does.
+      flight.skipToLanding();
+      slate.classList.add("over-3d");
+    } else {
+      world.hidden = true;
+    }
     slate.hidden = false;
     document.body.classList.add("slate-open");
     slate.classList.remove("opening");
     void slate.offsetWidth;
     slate.classList.add("opening");
+    slate.scrollTo(0, 0);
     window.scrollTo(0, 0);
     startChatter();
   };
@@ -107,9 +142,11 @@
   const replay = () => {
     stopChatter();
     slate.hidden = true;
+    slate.classList.remove("over-3d", "opening");
     document.body.classList.remove("slate-open");
     world.hidden = false;
-    world.className = "";
+    world.className = use3D ? "is-3d" : "";
+    if (use3D) flight.idle();
     dialog.hidden = true;
     title.classList.remove("gone");
     phase = "title";
@@ -123,6 +160,22 @@
   });
   $("#skip").addEventListener("click", openSlate);
   $("#replay").addEventListener("click", replay);
+
+  /* A little tilt so the Slate feels like a device in your hands. */
+  const frame = $(".slate-frame");
+  const finePointer = matchMedia("(pointer: fine)").matches;
+  if (finePointer && !reduced) {
+    slate.addEventListener("pointermove", (e) => {
+      const x = e.clientX / innerWidth - 0.5;
+      const y = e.clientY / innerHeight - 0.5;
+      frame.style.setProperty("--ry", `${(x * 3).toFixed(2)}deg`);
+      frame.style.setProperty("--rx", `${(-y * 2.4).toFixed(2)}deg`);
+    });
+    slate.addEventListener("pointerleave", () => {
+      frame.style.setProperty("--ry", "0deg");
+      frame.style.setProperty("--rx", "0deg");
+    });
+  }
 
   /* ---------------- Points of interest ----------------
      x / y are percentages on the map photo. */

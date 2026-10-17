@@ -19,7 +19,8 @@
 <body>
 
   <!-- ============ The overworld: sky, descent, landing ============ -->
-  <main id="world" aria-label="Arthur paragliding down to the ground">
+  <main id="world" aria-label="Arthur paragliding down onto Tech Green at Georgia Tech">
+    <div id="globe" aria-hidden="true"></div>
     <div class="sky"></div>
     <div class="sun"></div>
 
@@ -99,7 +100,7 @@
     <div id="title" class="title-card">
       <p class="eyebrow">The Legend of Arthur</p>
       <h1>Breath of the <span>Aneesh</span></h1>
-      <p class="press">Tap or press any key to begin</p>
+      <p class="press" id="press">Tap or press any key to begin</p>
     </div>
 
     <div id="dialog" class="textbox" role="dialog" aria-live="polite" hidden>
@@ -114,6 +115,9 @@
   <!-- ============ The Sheikah Slate ============ -->
   <section id="slate" class="slate" aria-label="Arthur's Sheikah Slate" hidden>
     <div class="slate-frame">
+      <div class="slate-boot" aria-hidden="true">
+        <svg viewBox="0 0 64 40"><path d="M2 20 Q32 -6 62 20 Q32 46 2 20Z" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="32" cy="20" r="8" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M32 30 L32 40" stroke="currentColor" stroke-width="2.5"/></svg>
+      </div>
       <header class="slate-top">
         <div class="slate-eye" aria-hidden="true">
           <svg viewBox="0 0 64 40"><path d="M2 20 Q32 -6 62 20 Q32 46 2 20Z" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="32" cy="20" r="8" fill="none" stroke="currentColor" stroke-width="3"/><path d="M32 30 L32 40" stroke="currentColor" stroke-width="3"/></svg>
@@ -229,6 +233,8 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
+  <script src="config.js"></script>
+  <script src="flight3d.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
