@@ -8,7 +8,9 @@ campus and has something nice to say about Aneesh at every building.
 Plain static site with no build step:
 
 - `index.html`, `style.css`, `script.js`: the page, the landing dialogue, and the Sheikah Slate.
-- `flight3d.js`: the 3D descent onto Tech Green and walking around campus, built on CesiumJS (loaded from jsDelivr).
+- `flight3d.js`: the 3D descent onto Tech Green, walking around campus, and the shrines standing on it, built on CesiumJS (loaded from jsDelivr).
+- `shrines.js`: the shrines on the Slate map (one per thing Aneesh has done), where each stands on campus, and the trial inside each one.
+- `warp.js`: the blue light effect for warping in and out.
 - `models/`: Arthur's low-poly gliding and standing models, with his face. Rebuild them with `node tools/build-models.js`.
 - `img/aneesh-hyrule.jpg`: the Slate map, Aneesh's silhouette turned into an island (his face is the terrain) in a game-style sea with a few outlying isles. Rebuild it with `python3 tools/build-map.py`. If you move an isle, move its marker in `script.js` too.
 - `api/config.js`: a Vercel function that hands the page the Google Maps key.
@@ -59,6 +61,21 @@ Walking up to a building announces it the way the game announces a new area, wit
 about Aneesh. The buildings and their lines are the `LANDMARKS` list in `script.js` (coordinates from
 OpenStreetMap). With the photoreal 3D tiles his feet follow whatever is under them, rooftops included;
 on the satellite fallback the ground is flat.
+
+## Shrines and warping
+
+Every marker on the Slate map is a glowing shrine (Peak Hair Tower is a tower). Pick one and choose
+"Warp here": Arthur turns into blue light, the loading screen shows a tip about where he's headed, and
+he re-forms next to that shrine on campus, under a blue beam. Walk up to it and press A (F, Enter, or
+Space on a keyboard, or tap the button) to go in.
+
+Each shrine's trial is themed on what it's about: land a rocket, fuse noisy sensor readings, decode a
+ROT13 message, lead 8 engineers to "Ship it", snap together RL blocks, cool Memphis on a budget, run
+`whoami` on a tiny browser OS, and so on. Clearing one earns a Spirit Orb, unlocks the full write-up on
+the map, and the count is kept in the browser. Without WebGL, warping goes straight into the shrine.
+
+To add a shrine, add an entry to `SHRINES` in `shrines.js` (map position, campus spot, the monk's line,
+Arthur's write-up, the warp tip) and a trial to `TRIALS`.
 
 ## Run locally
 
