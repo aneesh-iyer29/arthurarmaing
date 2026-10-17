@@ -240,8 +240,8 @@ window.Flight3D = (() => {
   const input = { x: 0, y: 0, run: false };
   let walker = null;           // { lat, lon, alt, heading }
   let walkerEntity = null, walkPos = null, walkOrient = null;
-  let camYaw = 0, camPitch = -0.28, camRange = 7, eyePitch = 0;
-  let firstPerson = false, lastFrame = 0, targetAlt = 0, walkPhase = 0, lastLook = 0;
+  let camYaw = 0, camPitch = -0.28, camRange = 7;
+  let lastFrame = 0, targetAlt = 0, walkPhase = 0, lastLook = 0;
   let sampler = null;
   let onMove = () => {}, onEdge = () => {};
 
@@ -270,7 +270,7 @@ window.Flight3D = (() => {
       walker.heading = lerpAngle(walker.heading, dir, Math.min(1, dt * 12));
       walkPhase += dt * (input.run ? 11 : 7.5) * push;
       // The camera swings around behind me unless someone is steering it.
-      if (!firstPerson && now - lastLook > 1200) camYaw = lerpAngle(camYaw, walker.heading, Math.min(1, dt * 0.9 * push));
+      if (now - lastLook > 1200) camYaw = lerpAngle(camYaw, walker.heading, Math.min(1, dt * 0.9 * push));
     } else {
       walkPhase = 0;
     }
@@ -278,15 +278,7 @@ window.Flight3D = (() => {
     walker.alt += (targetAlt - walker.alt) * Math.min(1, dt * (targetAlt > walker.alt ? 9 : 5));
     placeWalker();
 
-    if (firstPerson) {
-      scene.camera.lookAtTransform(C.Matrix4.IDENTITY);
-      scene.camera.setView({
-        destination: lift(walkPos, 1.62),
-        orientation: { heading: camYaw, pitch: eyePitch, roll: 0 },
-      });
-    } else {
-      look(lift(walkPos, 1.5), camYaw, camPitch, camRange);
-    }
+    look(lift(walkPos, 1.5), camYaw, camPitch, camRange);
     onMove(walker.lat, walker.lon, walker.heading, moving);
   };
 
@@ -322,7 +314,7 @@ window.Flight3D = (() => {
         model: { uri: "models/arthur-stand.glb", scale: 1 },
       });
     }
-    walkerEntity.show = !firstPerson && !heroHidden;
+    walkerEntity.show = !heroHidden;
     lastFrame = 0;
     mode = "explore";
     clearInterval(sampler);
@@ -339,7 +331,6 @@ window.Flight3D = (() => {
     pauseExplore();
     if (walkerEntity) { viewer.entities.remove(walkerEntity); walkerEntity = null; }
     walker = null;
-    firstPerson = false;
     if (scene) scene.camera.lookAtTransform(C.Matrix4.IDENTITY);
   };
 
@@ -349,19 +340,10 @@ window.Flight3D = (() => {
   const turn = (dx, dy = 0) => {
     lastLook = performance.now();
     camYaw += dx;
-    if (firstPerson) eyePitch = Math.max(-1.3, Math.min(1.1, eyePitch - dy));
-    else camPitch = Math.max(-1.35, Math.min(0.05, camPitch - dy));
+    camPitch = Math.max(-1.35, Math.min(0.05, camPitch - dy));
   };
 
   const zoom = (f) => { camRange = Math.max(3, Math.min(60, camRange * f)); };
-
-  const toggleView = () => {
-    firstPerson = !firstPerson;
-    eyePitch = 0;
-    if (walkerEntity) walkerEntity.show = !firstPerson && !heroHidden;
-    if (!firstPerson && scene) scene.camera.lookAtTransform(C.Matrix4.IDENTITY);
-    return firstPerson;
-  };
 
   /* ---------------- Shrines on campus ----------------
      Each one is a little stone shrine with a ring on the ground and a blue
@@ -453,14 +435,13 @@ window.Flight3D = (() => {
     targetAlt = alt;
     camYaw = 0;
     camPitch = -0.28;
-    eyePitch = 0;
     if (walkerEntity) placeWalker();
   };
 
   /* Hide him while he's turned into light. */
   const showHero = (show) => {
     heroHidden = !show;
-    if (walkerEntity) walkerEntity.show = !firstPerson && !heroHidden;
+    if (walkerEntity) walkerEntity.show = !heroHidden;
     if (stander) stander.show = !heroHidden;
   };
 
@@ -618,7 +599,7 @@ window.Flight3D = (() => {
 
   return {
     init, start, lookAtSlate, skipToLanding, idle,
-    explore, pauseExplore, setMove, turn, zoom, toggleView,
+    explore, pauseExplore, setMove, turn, zoom,
     placeShrines, markShrine, warpTo, showHero,
     get exploring() { return mode === "explore"; },
     get ready() { return !!viewer; },

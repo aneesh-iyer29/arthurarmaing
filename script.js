@@ -215,8 +215,6 @@
     world.hidden = false;
     world.className = use3D ? "is-3d" : "";
     if (use3D) flight.idle();
-    firstPersonOn = false;
-    viewBtn.firstChild.textContent = "First person ";
     dialog.hidden = true;
     title.classList.remove("gone");
     phase = "title";
@@ -233,8 +231,8 @@
 
   /* ---------------- Walking around campus ----------------
      WASD or the arrow keys (or the stick on a phone) walk, Shift or a full
-     push runs until my stamina gives out, dragging looks around, V swaps to
-     first person, and M brings the Slate back. Walking up to a building
+     push runs until my stamina gives out, dragging looks around, and M brings
+     the Slate back. Walking up to a building
      announces it the way the game announces a new area. */
   const LANDMARKS = [
     { name: "Tech Green", lat: 33.77466, lon: -84.39733, r: 45,
@@ -300,7 +298,7 @@
   const shrinePrompt = $("#shrine-prompt");
   let nearShrine = null;
   let here = null, lastReveal = 0, revealTimer, edgeAt = 0, loopId = 0, lastTick = 0;
-  let stamina = 1, exhausted = false, firstPersonOn = false;
+  let stamina = 1, exhausted = false;
   const seen = new Map();
 
   const reveal = (name, line) => {
@@ -399,7 +397,7 @@
     if (intro) {
       hint.textContent = touchy
         ? "Left stick to walk, push it all the way to run. Drag anywhere to look around."
-        : "WASD or arrow keys to walk, Shift to run, drag to look, V for first person, M for the map.";
+        : "WASD or arrow keys to walk, Shift to run, drag to look, M for the map.";
       hint.classList.remove("gone");
       setTimeout(() => hint.classList.add("gone"), 9000);
       if (!seen.size) seen.set(LANDMARKS[0], performance.now());
@@ -425,12 +423,6 @@
 
   $("#explore").addEventListener("click", explore);
   $("#map-btn").addEventListener("click", openSlate);
-  const viewBtn = $("#view-btn");
-  const swapView = () => {
-    firstPersonOn = flight.toggleView();
-    viewBtn.firstChild.textContent = firstPersonOn ? "Third person " : "First person ";
-  };
-  viewBtn.addEventListener("click", swapView);
 
   /* The stick. */
   const moveStick = (e) => {
@@ -845,8 +837,7 @@
       if (["w", "a", "s", "d", "q", "e", "shift", "arrowup", "arrowdown", "arrowleft", "arrowright"].includes(k)) {
         e.preventDefault();
         held.add(k);
-      } else if (k === "v") swapView();
-      else if (k === "m" || k === "escape") openSlate();
+      } else if (k === "m" || k === "escape") openSlate();
       else if ((k === "f" || k === "enter" || k === " ") && nearShrine) { e.preventDefault(); enterShrine(nearShrine); }
       return;
     }
